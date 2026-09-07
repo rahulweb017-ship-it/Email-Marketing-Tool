@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-sm;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .shimmer-bg {
+    @apply bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded-lg;
+    animation: shimmer 2s infinite linear;
+  }
+}
+
+/* TipTap rich text editor */
+.tiptap {
+  outline: none;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.tiptap h1 { font-size: 1.75em; font-weight: 700; margin: 0.5em 0 0.25em; line-height: 1.2; }
+.tiptap h2 { font-size: 1.375em; font-weight: 600; margin: 0.5em 0 0.25em; line-height: 1.3; }
+.tiptap h3 { font-size: 1.125em; font-weight: 600; margin: 0.5em 0 0.25em; line-height: 1.4; }
+.tiptap p { margin: 0.4em 0; line-height: 1.6; }
+.tiptap ul, .tiptap ol { padding-left: 1.5em; margin: 0.4em 0; }
+.tiptap li { margin: 0.15em 0; }
+.tiptap blockquote {
+  border-left: 3px solid #6366f1;
+  padding-left: 1em;
+  margin: 0.5em 0;
+  color: #4b5563;
+  font-style: italic;
+}
+.tiptap hr { border: none; border-top: 1px solid #e5e7eb; margin: 1em 0; }
+.tiptap a { color: #4f46e5; text-decoration: underline; cursor: pointer; }
+.tiptap img { max-width: 100%; height: auto; border-radius: 8px; margin: 0.5em 0; }
+.tiptap strong { font-weight: 600; }
+.tiptap em { font-style: italic; }
+.tiptap s { text-decoration: line-through; }
+
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid #d1d5db;
+  padding: 6px 8px;
+  vertical-align: top;
+  position: relative;
+  min-width: 1em;
+}
+.ProseMirror th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+.ProseMirror .selectedCell:after {
+  background: rgba(59, 130, 246, 0.15);
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #3b82f6;
+  pointer-events: none;
+}
+.ProseMirror mark { background-color: #fef08a; padding: 0 2px; border-radius: 2px; }

@@ -1,0 +1,72 @@
+/* GrapesJS theme overrides to match MailForge indigo palette */
+
+.gjs-one-bg {
+  background-color: #1e1b4b;
+}
+
+.gjs-two-color {
+  color: #a5b4fc;
+}
+
+.gjs-three-bg {
+  background-color: #312e81;
+}
+
+.gjs-four-color,
+.gjs-four-color-h:hover {
+  color: #818cf8;
+}
+
+.gjs-pn-panel {
+  background-color: #1e1b4b;
+  border-color: #312e81;
+}
+
+.gjs-pn-views-container {
+  background-color: #1e1b4b;
+  border-color: #312e81;
+}
+
+.gjs-pn-views .gjs-pn-btn.gjs-pn-active {
+  color: #818cf8;
+}
+
+.gjs-block {
+  border: 1px solid #312e81;
+  border-radius: 6px;
+  min-height: auto;
+  padding: 8px;
+}
+
+.gjs-block:hover {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+}
+
+.gjs-cv-canvas {
+  background-color: #f8fafc;
+}
+
+.gjs-toolbar {
+  background-color: #4f46e5;
+}
+
+.gjs-toolbar-item {
+  color: white;
+}
+
+.gjs-rte-toolbar {
+  background-color: #1e1b4b;
+  border-color: #312e81;
+}
+
+.gjs-sm-sector .gjs-sm-sector-title {
+  background-color: #312e81;
+  color: #c7d2fe;
+  border-color: #3730a3;
+}
+
+/* Hide unnecessary panels for email editor */
+.gjs-pn-commands {
+  display: none;
+}

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+*.log
+.turbo/
+coverage/
+.DS_Store
+
+# Local data / secrets - never commit
+*.csv
+*.pdf
+*.zip
+*.xlsx
+apps/web/nul
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+.claude/

@@ -1,0 +1,171 @@
+{
+  "_meta": {
+    "note": "Other pages (Dashboard, Campaigns, Contacts, etc.) can progressively adopt i18n by importing useTranslation and replacing hardcoded strings with t() calls."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "contacts": "Contacts",
+    "lists": "Lists",
+    "campaigns": "Campaigns",
+    "templates": "Templates",
+    "automations": "Automations",
+    "segments": "Segments",
+    "transactional": "Transactional",
+    "forms": "Forms",
+    "settings": "Settings",
+    "social": "Social Media"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "export": "Export",
+    "import": "Import",
+    "duplicate": "Duplicate",
+    "actions": "Actions",
+    "all": "All",
+    "filter": "Filter",
+    "reset": "Reset",
+    "apply": "Apply",
+    "from": "From",
+    "to": "To"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "register": "Register"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalContacts": "Total Contacts",
+    "emailsSent": "Emails Sent",
+    "openRate": "Open Rate",
+    "clickRate": "Click Rate",
+    "recentActivity": "Recent Activity",
+    "campaignPerformance": "Campaign Performance"
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "newCampaign": "New Campaign",
+    "sendTest": "Send Test",
+    "schedule": "Schedule",
+    "sendNow": "Send Now",
+    "states": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "in_queue": "Queued",
+      "sending": "Sending",
+      "done": "Sent",
+      "cancelled": "Cancelled"
+    },
+    "stats": {
+      "sent": "Sent",
+      "opened": "Opened",
+      "clicked": "Clicked",
+      "bounced": "Bounced"
+    }
+  },
+  "contacts": {
+    "title": "Contacts",
+    "newContact": "New Contact",
+    "importContacts": "Import Contacts",
+    "exportContacts": "Export Contacts",
+    "email": "Email",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "company": "Company"
+  },
+  "templates": {
+    "title": "Templates",
+    "newTemplate": "New Template",
+    "editTemplate": "Edit Template",
+    "versionHistory": "Version History"
+  },
+  "settings": {
+    "title": "Settings",
+    "providers": "Email Sending Providers",
+    "addProvider": "Add Provider",
+    "testConnection": "Test",
+    "apiKeys": "API Keys",
+    "webhooks": "Webhooks",
+    "auditLog": "Audit Log",
+    "domainAuth": "Domain Authentication"
+  },
+  "lists": {
+    "title": "Mailing Lists",
+    "newList": "New List",
+    "subscribers": "subscribers"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "noNotifications": "No notifications"
+  },
+  "audit": {
+    "title": "Audit Log",
+    "description": "View all system activity and changes made by users.",
+    "timestamp": "Timestamp",
+    "user": "User",
+    "action": "Action",
+    "entityType": "Entity Type",
+    "entityId": "Entity ID",
+    "ipAddress": "IP Address",
+    "changes": "Changes",
+    "noLogs": "No audit logs found",
+    "noLogsDescription": "Activity will appear here as actions are performed in the system.",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details",
+    "fieldChanged": "changed",
+    "oldValue": "Old",
+    "newValue": "New",
+    "actions": {
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete",
+      "send": "Send",
+      "schedule": "Schedule",
+      "cancel": "Cancel",
+      "login": "Login",
+      "import": "Import",
+      "export": "Export"
+    },
+    "entities": {
+      "campaign": "Campaign",
+      "contact": "Contact",
+      "template": "Template",
+      "list": "List",
+      "automation": "Automation",
+      "sending_config": "Provider",
+      "api_key": "API Key",
+      "webhook": "Webhook",
+      "segment": "Segment",
+      "user": "User"
+    },
+    "filters": {
+      "entityType": "Entity Type",
+      "action": "Action",
+      "dateFrom": "Date From",
+      "dateTo": "Date To",
+      "allEntities": "All Entities",
+      "allActions": "All Actions"
+    }
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German"
+  }
+}

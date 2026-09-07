@@ -1,0 +1,168 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "contacts": "Contactos",
+    "lists": "Listas",
+    "campaigns": "Campanas",
+    "templates": "Plantillas",
+    "automations": "Automatizaciones",
+    "segments": "Segmentos",
+    "transactional": "Transaccional",
+    "forms": "Formularios",
+    "settings": "Configuracion",
+    "social": "Redes Sociales"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "noResults": "No se encontraron resultados",
+    "confirm": "Confirmar",
+    "back": "Atras",
+    "next": "Siguiente",
+    "close": "Cerrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "duplicate": "Duplicar",
+    "actions": "Acciones",
+    "all": "Todo",
+    "filter": "Filtrar",
+    "reset": "Restablecer",
+    "apply": "Aplicar",
+    "from": "Desde",
+    "to": "Hasta"
+  },
+  "auth": {
+    "signIn": "Iniciar sesion",
+    "signOut": "Cerrar sesion",
+    "email": "Correo electronico",
+    "password": "Contrasena",
+    "register": "Registrarse"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "totalContacts": "Total de contactos",
+    "emailsSent": "Correos enviados",
+    "openRate": "Tasa de apertura",
+    "clickRate": "Tasa de clics",
+    "recentActivity": "Actividad reciente",
+    "campaignPerformance": "Rendimiento de campanas"
+  },
+  "campaigns": {
+    "title": "Campanas",
+    "newCampaign": "Nueva campana",
+    "sendTest": "Enviar prueba",
+    "schedule": "Programar",
+    "sendNow": "Enviar ahora",
+    "states": {
+      "draft": "Borrador",
+      "scheduled": "Programado",
+      "in_queue": "En cola",
+      "sending": "Enviando",
+      "done": "Enviado",
+      "cancelled": "Cancelado"
+    },
+    "stats": {
+      "sent": "Enviados",
+      "opened": "Abiertos",
+      "clicked": "Clicados",
+      "bounced": "Rebotados"
+    }
+  },
+  "contacts": {
+    "title": "Contactos",
+    "newContact": "Nuevo contacto",
+    "importContacts": "Importar contactos",
+    "exportContacts": "Exportar contactos",
+    "email": "Correo electronico",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "company": "Empresa"
+  },
+  "templates": {
+    "title": "Plantillas",
+    "newTemplate": "Nueva plantilla",
+    "editTemplate": "Editar plantilla",
+    "versionHistory": "Historial de versiones"
+  },
+  "settings": {
+    "title": "Configuracion",
+    "providers": "Proveedores de envio de correo",
+    "addProvider": "Agregar proveedor",
+    "testConnection": "Probar",
+    "apiKeys": "Claves API",
+    "webhooks": "Webhooks",
+    "auditLog": "Registro de auditoria",
+    "domainAuth": "Autenticacion de dominio"
+  },
+  "lists": {
+    "title": "Listas de correo",
+    "newList": "Nueva lista",
+    "subscribers": "suscriptores"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leido",
+    "noNotifications": "Sin notificaciones"
+  },
+  "audit": {
+    "title": "Registro de auditoria",
+    "description": "Ver toda la actividad del sistema y los cambios realizados por los usuarios.",
+    "timestamp": "Fecha y hora",
+    "user": "Usuario",
+    "action": "Accion",
+    "entityType": "Tipo de entidad",
+    "entityId": "ID de entidad",
+    "ipAddress": "Direccion IP",
+    "changes": "Cambios",
+    "noLogs": "No se encontraron registros de auditoria",
+    "noLogsDescription": "La actividad aparecera aqui a medida que se realicen acciones en el sistema.",
+    "showDetails": "Mostrar detalles",
+    "hideDetails": "Ocultar detalles",
+    "fieldChanged": "modificado",
+    "oldValue": "Anterior",
+    "newValue": "Nuevo",
+    "actions": {
+      "create": "Crear",
+      "update": "Actualizar",
+      "delete": "Eliminar",
+      "send": "Enviar",
+      "schedule": "Programar",
+      "cancel": "Cancelar",
+      "login": "Iniciar sesion",
+      "import": "Importar",
+      "export": "Exportar"
+    },
+    "entities": {
+      "campaign": "Campana",
+      "contact": "Contacto",
+      "template": "Plantilla",
+      "list": "Lista",
+      "automation": "Automatizacion",
+      "sending_config": "Proveedor",
+      "api_key": "Clave API",
+      "webhook": "Webhook",
+      "segment": "Segmento",
+      "user": "Usuario"
+    },
+    "filters": {
+      "entityType": "Tipo de entidad",
+      "action": "Accion",
+      "dateFrom": "Fecha desde",
+      "dateTo": "Fecha hasta",
+      "allEntities": "Todas las entidades",
+      "allActions": "Todas las acciones"
+    }
+  },
+  "language": {
+    "label": "Idioma",
+    "en": "Ingles",
+    "es": "Espanol",
+    "fr": "Frances",
+    "de": "Aleman"
+  }
+}

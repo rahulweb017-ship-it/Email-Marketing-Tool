@@ -1,0 +1,168 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "contacts": "Kontakte",
+    "lists": "Listen",
+    "campaigns": "Kampagnen",
+    "templates": "Vorlagen",
+    "automations": "Automatisierungen",
+    "segments": "Segmente",
+    "transactional": "Transaktional",
+    "forms": "Formulare",
+    "settings": "Einstellungen",
+    "social": "Soziale Medien"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Loschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "search": "Suchen",
+    "loading": "Laden...",
+    "noResults": "Keine Ergebnisse gefunden",
+    "confirm": "Bestatigen",
+    "back": "Zuruck",
+    "next": "Weiter",
+    "close": "Schliessen",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "duplicate": "Duplizieren",
+    "actions": "Aktionen",
+    "all": "Alle",
+    "filter": "Filtern",
+    "reset": "Zurucksetzen",
+    "apply": "Anwenden",
+    "from": "Von",
+    "to": "Bis"
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "register": "Registrieren"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalContacts": "Kontakte gesamt",
+    "emailsSent": "E-Mails gesendet",
+    "openRate": "Offnungsrate",
+    "clickRate": "Klickrate",
+    "recentActivity": "Letzte Aktivitat",
+    "campaignPerformance": "Kampagnenleistung"
+  },
+  "campaigns": {
+    "title": "Kampagnen",
+    "newCampaign": "Neue Kampagne",
+    "sendTest": "Test senden",
+    "schedule": "Planen",
+    "sendNow": "Jetzt senden",
+    "states": {
+      "draft": "Entwurf",
+      "scheduled": "Geplant",
+      "in_queue": "In Warteschlange",
+      "sending": "Wird gesendet",
+      "done": "Gesendet",
+      "cancelled": "Abgebrochen"
+    },
+    "stats": {
+      "sent": "Gesendet",
+      "opened": "Geoffnet",
+      "clicked": "Geklickt",
+      "bounced": "Zugestellt fehlgeschlagen"
+    }
+  },
+  "contacts": {
+    "title": "Kontakte",
+    "newContact": "Neuer Kontakt",
+    "importContacts": "Kontakte importieren",
+    "exportContacts": "Kontakte exportieren",
+    "email": "E-Mail",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "company": "Unternehmen"
+  },
+  "templates": {
+    "title": "Vorlagen",
+    "newTemplate": "Neue Vorlage",
+    "editTemplate": "Vorlage bearbeiten",
+    "versionHistory": "Versionshistorie"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "providers": "E-Mail-Versandanbieter",
+    "addProvider": "Anbieter hinzufugen",
+    "testConnection": "Testen",
+    "apiKeys": "API-Schlussel",
+    "webhooks": "Webhooks",
+    "auditLog": "Audit-Protokoll",
+    "domainAuth": "Domain-Authentifizierung"
+  },
+  "lists": {
+    "title": "Mailinglisten",
+    "newList": "Neue Liste",
+    "subscribers": "Abonnenten"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "noNotifications": "Keine Benachrichtigungen"
+  },
+  "audit": {
+    "title": "Audit-Protokoll",
+    "description": "Alle Systemaktivitaten und von Benutzern vorgenommene Anderungen anzeigen.",
+    "timestamp": "Zeitstempel",
+    "user": "Benutzer",
+    "action": "Aktion",
+    "entityType": "Entitatstyp",
+    "entityId": "Entitats-ID",
+    "ipAddress": "IP-Adresse",
+    "changes": "Anderungen",
+    "noLogs": "Keine Audit-Protokolle gefunden",
+    "noLogsDescription": "Aktivitaten werden hier angezeigt, sobald Aktionen im System ausgefuhrt werden.",
+    "showDetails": "Details anzeigen",
+    "hideDetails": "Details ausblenden",
+    "fieldChanged": "geandert",
+    "oldValue": "Alt",
+    "newValue": "Neu",
+    "actions": {
+      "create": "Erstellen",
+      "update": "Aktualisieren",
+      "delete": "Loschen",
+      "send": "Senden",
+      "schedule": "Planen",
+      "cancel": "Abbrechen",
+      "login": "Anmeldung",
+      "import": "Importieren",
+      "export": "Exportieren"
+    },
+    "entities": {
+      "campaign": "Kampagne",
+      "contact": "Kontakt",
+      "template": "Vorlage",
+      "list": "Liste",
+      "automation": "Automatisierung",
+      "sending_config": "Anbieter",
+      "api_key": "API-Schlussel",
+      "webhook": "Webhook",
+      "segment": "Segment",
+      "user": "Benutzer"
+    },
+    "filters": {
+      "entityType": "Entitatstyp",
+      "action": "Aktion",
+      "dateFrom": "Datum von",
+      "dateTo": "Datum bis",
+      "allEntities": "Alle Entitaten",
+      "allActions": "Alle Aktionen"
+    }
+  },
+  "language": {
+    "label": "Sprache",
+    "en": "Englisch",
+    "es": "Spanisch",
+    "fr": "Franzosisch",
+    "de": "Deutsch"
+  }
+}
