@@ -222,7 +222,7 @@ export function generateEmbedHtml(form: Record<string, unknown>, apiBaseUrl: str
     ? `\n      <div style="position: absolute; left: -9999px;" aria-hidden="true"><input type="text" name="hp_field" tabindex="-1" autocomplete="off" /></div>`
     : '';
 
-  return `<!-- MailForge Signup Form -->
+  return `<!-- Rabbit Growth Signup Form -->
 <div id="mf-form-${formId}" style="max-width: 420px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <form action="${submitUrl}" method="POST" style="background: ${bgColor}; padding: 24px; border-radius: 8px; border: 1px solid #e5e7eb;">
     ${form.name ? `<h3 style="margin: 0 0 4px 0; font-size: 18px; color: #111827;">${form.name}</h3>` : ''}

@@ -17,7 +17,10 @@ import {
   ShieldCheck,
   CheckCircle,
   Zap,
+  MessageCircle,
 } from 'lucide-react';
+import SendWhatsAppModal from '../components/whatsapp/SendWhatsAppModal';
+import { getContactWaActivity } from '../api/whatsapp';
 import api from '../api/client';
 import { getContactConsent, grantConsent, revokeConsent } from '../api/consent';
 import { validateContact } from '../api/email-validation';
@@ -120,6 +123,13 @@ export default function ContactProfilePage() {
   const [togglingConsent, setTogglingConsent] = useState<string | null>(null);
 
   const [validating, setValidating] = useState(false);
+  const [waOpen, setWaOpen] = useState(false);
+  const [waActivity, setWaActivity] = useState<Awaited<ReturnType<typeof getContactWaActivity>>>([]);
+  const fetchWaActivity = useCallback(async () => {
+    if (!id) return;
+    try { setWaActivity(await getContactWaActivity(id)); } catch { setWaActivity([]); } // 402 when the plan has no WhatsApp
+  }, [id]);
+  useEffect(() => { fetchWaActivity(); }, [fetchWaActivity]);
 
   const [campaignPage, setCampaignPage] = useState(1);
   const [campaignTotal, setCampaignTotal] = useState(0);
@@ -291,6 +301,14 @@ export default function ContactProfilePage() {
             <CheckCircle className={`h-4 w-4 ${validating ? 'animate-spin' : ''}`} />
             {validating ? 'Validating...' : 'Validate Email'}
           </button>
+          {contact.phone && (
+            <button
+              onClick={() => setWaOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <MessageCircle className="h-4 w-4" /> WhatsApp
+            </button>
+          )}
         </div>
       </div>
 
@@ -353,6 +371,27 @@ export default function ContactProfilePage() {
               </div>
             )}
           </motion.div>
+
+          {/* WhatsApp History */}
+          {waActivity.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2"><MessageCircle className="h-5 w-5 text-green-600" /> WhatsApp</h2>
+                <button onClick={() => navigate(`/whatsapp/inbox?c=${waActivity[0].conversation_id}`)} className="text-sm text-green-600 hover:underline">Open conversation</button>
+              </div>
+              <ul className="space-y-2">
+                {waActivity.slice(0, 10).map((m) => (
+                  <li key={m.id} className="flex items-start gap-3 text-sm">
+                    <span className={`mt-0.5 text-xs px-1.5 py-0.5 rounded ${m.direction === 'in' ? 'bg-teal-100 text-teal-700' : 'bg-green-100 text-green-700'}`}>{m.direction === 'in' ? 'Received' : m.status}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-700 dark:text-gray-300 truncate">{m.body || `[${m.type}]`}</p>
+                      <p className="text-xs text-gray-400">{new Date(m.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}{m.campaign_name ? ` · ${m.campaign_name}` : ''}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Email History Table */}
           <motion.div
@@ -623,7 +662,7 @@ export default function ContactProfilePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {['email_marketing', 'data_processing', 'third_party_sharing'].map((type) => {
+                {['email_marketing', 'whatsapp_marketing', 'data_processing', 'third_party_sharing'].map((type) => {
                   const record = consent.find((c) => c.consent_type === type);
                   const status = record?.status || 'none';
                   const label = type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
@@ -660,6 +699,7 @@ export default function ContactProfilePage() {
           </motion.div>
         </div>
       </div>
+      <SendWhatsAppModal open={waOpen} contactId={contact.id} onClose={() => setWaOpen(false)} onSent={fetchWaActivity} />
     </motion.div>
   );
 }

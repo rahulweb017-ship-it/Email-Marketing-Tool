@@ -113,7 +113,7 @@ export async function testWebhook(orgId: string, webhookId: string) {
     event: 'webhook.test',
     timestamp: new Date().toISOString(),
     data: {
-      message: 'This is a test webhook delivery from MailForge.',
+      message: 'This is a test webhook delivery from Rabbit Growth.',
       webhook_id: webhookId,
     },
   };

@@ -16,6 +16,25 @@ consentRouter.get('/contacts/:contactId/consent', async (req: Request, res: Resp
   }
 });
 
+/** POST /api/v1/consent/bulk — { consent_type, contact_ids? | list_id?, source? } */
+consentRouter.post('/bulk', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { consent_type, contact_ids, list_id, source } = req.body || {};
+    if (!consent_type || typeof consent_type !== 'string') {
+      return res.status(400).json({ error: 'consent_type is required' });
+    }
+    const result = await consentService.bulkGrantConsentForOrg(req.user!.org_id!, {
+      consent_type,
+      contact_ids: Array.isArray(contact_ids) ? contact_ids.map(String) : undefined,
+      list_id: typeof list_id === 'string' ? list_id : undefined,
+      source: typeof source === 'string' ? source : 'manual',
+    });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 /** POST /api/v1/consent/contacts/:contactId/consent */
 consentRouter.post('/contacts/:contactId/consent', async (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -46,7 +46,7 @@ export default function RegisterPage() {
           <div className="p-2 bg-gradient-to-br from-primary-500 to-violet-600 rounded-xl">
             <Mail className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-violet-600 bg-clip-text text-transparent">MailForge</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-violet-600 bg-clip-text text-transparent">Rabbit Growth</h1>
         </motion.div>
 
         <h2 className="text-xl font-semibold text-center mb-6">Create your account</h2>

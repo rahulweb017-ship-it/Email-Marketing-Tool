@@ -30,6 +30,8 @@ export const createPlanSchema = z.object({
   max_sending_configs: z.number().int().min(1).default(1),
   max_users: z.number().int().min(1).default(1),
   max_lists: z.number().int().min(1).default(5),
+  max_whatsapp_messages_per_month: z.number().int().min(0).default(0),
+  max_whatsapp_accounts: z.number().int().min(0).default(0),
   features: z.record(z.boolean()).default({}),
   price_monthly: z.number().min(0).default(0),
   price_yearly: z.number().min(0).default(0),

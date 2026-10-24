@@ -10,6 +10,8 @@ interface OrgLimits {
   max_sending_configs: number;
   max_users: number;
   max_lists: number;
+  max_whatsapp_messages_per_month: number;
+  max_whatsapp_accounts: number;
   features: Record<string, boolean>;
 }
 
@@ -36,6 +38,8 @@ export async function getOrgLimits(orgId: string): Promise<OrgLimits> {
       'plans.max_sending_configs',
       'plans.max_users',
       'plans.max_lists',
+      'plans.max_whatsapp_messages_per_month',
+      'plans.max_whatsapp_accounts',
       'plans.features',
       'organizations.limits_override',
     )
@@ -56,6 +60,8 @@ export async function getOrgLimits(orgId: string): Promise<OrgLimits> {
     max_sending_configs: overrides.max_sending_configs ?? org.max_sending_configs ?? 1,
     max_users: overrides.max_users ?? org.max_users ?? 1,
     max_lists: overrides.max_lists ?? org.max_lists ?? 5,
+    max_whatsapp_messages_per_month: overrides.max_whatsapp_messages_per_month ?? org.max_whatsapp_messages_per_month ?? 0,
+    max_whatsapp_accounts: overrides.max_whatsapp_accounts ?? org.max_whatsapp_accounts ?? 0,
     features: { ...planFeatures, ...(overrides.features || {}) },
   };
 
@@ -125,6 +131,27 @@ export async function incrementEmailCounter(orgId: string, count: number = 1): P
   const redisKey = `org:emails:${orgId}:${period}`;
   await redis.incrby(redisKey, count);
   // Set TTL of 40 days if not already set
+  const ttl = await redis.ttl(redisKey);
+  if (ttl === -1) {
+    await redis.expire(redisKey, 40 * 24 * 60 * 60);
+  }
+}
+
+export async function getWhatsAppUsage(orgId: string): Promise<number> {
+  return parseInt(await redis.get(`org:wa:${orgId}:${getCurrentPeriod()}`) || '0');
+}
+
+export async function checkWhatsAppLimit(orgId: string, additionalCount: number = 0): Promise<void> {
+  const limits = await getOrgLimits(orgId);
+  const currentCount = await getWhatsAppUsage(orgId);
+  if (currentCount + additionalCount > limits.max_whatsapp_messages_per_month) {
+    throw new AppError(402, `Monthly WhatsApp message limit reached (${limits.max_whatsapp_messages_per_month}). Upgrade your plan to send more messages.`);
+  }
+}
+
+export async function incrementWhatsAppCounter(orgId: string, count: number = 1): Promise<void> {
+  const redisKey = `org:wa:${orgId}:${getCurrentPeriod()}`;
+  await redis.incrby(redisKey, count);
   const ttl = await redis.ttl(redisKey);
   if (ttl === -1) {
     await redis.expire(redisKey, 40 * 24 * 60 * 60);

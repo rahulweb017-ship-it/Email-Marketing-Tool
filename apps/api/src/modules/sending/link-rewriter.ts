@@ -88,7 +88,7 @@ export async function rewriteLinks(
   const headers: Record<string, string> = {
     'List-Unsubscribe': `<${unsubUrl}>, <${oneClickUrl}?contact_id=${contactId}&token=${unsubToken}>`,
     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    'X-Mailer': 'MailForge/1.0',
+    'X-Mailer': 'RabbitGrowth/1.0',
   };
 
   return { html: rewrittenHtml, headers };

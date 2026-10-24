@@ -7,7 +7,7 @@ import { useThemeStore } from '../stores/theme.store';
 import {
   LayoutDashboard, Users, ListChecks, Send, FileText,
   Workflow, Settings, LogOut, Mail, Globe, ChevronDown,
-  Sun, Moon, Monitor, Search, Filter, Zap, Share2,
+  Sun, Moon, Monitor, Search, Filter, Zap, Share2, MessageCircle,
 } from 'lucide-react';
 import clsx from 'clsx';
 import ToastContainer from './ui/Toast';
@@ -25,6 +25,7 @@ const navItems = [
   { path: '/segments', labelKey: 'nav.segments', icon: Filter },
   { path: '/transactional', labelKey: 'nav.transactional', icon: Zap },
   { path: '/social', labelKey: 'nav.social', icon: Share2 },
+  { path: '/whatsapp', labelKey: 'nav.whatsapp', icon: MessageCircle },
   // { path: '/forms', labelKey: 'nav.forms', icon: FileInput }, // Hidden — managed from super admin
   { path: '/settings', labelKey: 'nav.settings', icon: Settings },
 ];
@@ -95,7 +96,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Mail className="h-6 w-6 text-primary-400" />
             </motion.div>
             <span className="bg-gradient-to-r from-white to-primary-300 bg-clip-text text-transparent">
-              MailForge
+              Rabbit Growth
             </span>
           </Link>
         </div>
@@ -117,7 +118,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isActive = item.path === '/'
+              ? location.pathname === '/'
+              : location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             return (
               <Link
                 key={item.path}

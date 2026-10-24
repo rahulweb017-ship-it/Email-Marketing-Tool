@@ -17,6 +17,10 @@ export const importContactsQueue = new Queue('import-contacts', defaultOpts);
 export const engagementScoringQueue = new Queue('engagement-scoring', defaultOpts);
 export const socialPublishQueue = new Queue('social-publish', defaultOpts);
 export const socialMetricsQueue = new Queue('social-metrics', defaultOpts);
+export const whatsappCampaignQueue = new Queue('whatsapp-campaign', defaultOpts);
+export const whatsappInboundQueue = new Queue('whatsapp-inbound', defaultOpts);
+export const whatsappAiQueue = new Queue('whatsapp-ai-reply', defaultOpts);
+export const whatsappSessionQueue = new Queue('whatsapp-session', defaultOpts);
 
 export const queues = {
   emailSend: emailSendQueue,
@@ -33,4 +37,8 @@ export const queues = {
   engagementScoring: engagementScoringQueue,
   socialPublish: socialPublishQueue,
   socialMetrics: socialMetricsQueue,
+  whatsappCampaign: whatsappCampaignQueue,
+  whatsappInbound: whatsappInboundQueue,
+  whatsappAi: whatsappAiQueue,
+  whatsappSession: whatsappSessionQueue,
 };

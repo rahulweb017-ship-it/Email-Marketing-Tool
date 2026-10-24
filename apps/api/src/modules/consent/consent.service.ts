@@ -23,6 +23,11 @@ export async function grantConsent(
   const contact = await db('contacts').where({ id: contactId, org_id: orgId }).first();
   if (!contact) throw new AppError(404, 'Contact not found');
 
+  // Explicit WhatsApp opt-in (e.g. the customer asked to rejoin) lifts an earlier STOP
+  if (consentType === 'whatsapp_marketing' && contact.whatsapp_opt_out) {
+    await db('contacts').where('id', contactId).update({ whatsapp_opt_out: false, whatsapp_opt_out_at: null });
+  }
+
   // Check if a record for this consent type already exists
   const existing = await db('consent_records')
     .where({ org_id: orgId, contact_id: contactId, consent_type: consentType })
@@ -62,6 +67,10 @@ export async function revokeConsent(orgId: string, contactId: string, consentTyp
     .first();
 
   if (!record) throw new AppError(404, 'Active consent record not found');
+
+  if (consentType === 'whatsapp_marketing') {
+    await db('contacts').where({ id: contactId, org_id: orgId }).update({ whatsapp_opt_out: true, whatsapp_opt_out_at: new Date() });
+  }
 
   await db('consent_records').where('id', record.id).update({
     status: 'revoked',
@@ -173,4 +182,27 @@ export async function getRecentConsentChanges(orgId: string, limit = 20) {
     )
     .orderBy('consent_records.updated_at', 'desc')
     .limit(limit);
+}
+
+/**
+ * Record consent for many contacts at once (by ids or by list), scoped to the org.
+ * For WhatsApp, contacts who replied STOP are never re-opted in by a bulk action.
+ */
+export async function bulkGrantConsentForOrg(orgId: string, input: {
+  consent_type: string; contact_ids?: string[]; list_id?: string; source?: string;
+}) {
+  const q = db('contacts').where('contacts.org_id', orgId);
+  if (input.list_id) {
+    q.join('subscriptions', 'subscriptions.contact_id', 'contacts.id')
+      .where('subscriptions.list_id', input.list_id)
+      .where('subscriptions.opt_out', false);
+  } else if (input.contact_ids?.length) {
+    q.whereIn('contacts.id', input.contact_ids.slice(0, 10000));
+  } else {
+    throw new AppError(400, 'contact_ids or list_id is required');
+  }
+  if (input.consent_type === 'whatsapp_marketing') q.where('contacts.whatsapp_opt_out', false);
+  const ids: string[] = await q.distinct('contacts.id').pluck('contacts.id');
+  const result = await bulkGrantConsent(orgId, ids, input.consent_type, input.source || 'manual');
+  return { matched: ids.length, result };
 }

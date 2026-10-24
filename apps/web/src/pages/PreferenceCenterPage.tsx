@@ -113,7 +113,7 @@ export default function PreferenceCenterPage() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-lg mx-auto px-4 py-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">MailForge</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Rabbit Growth</h1>
           <p className="text-sm text-gray-500 mt-1">Email Preferences Center</p>
         </div>
       </div>
@@ -217,7 +217,7 @@ export default function PreferenceCenterPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-400 mt-6">
-          Powered by MailForge
+          Powered by Rabbit Growth
         </p>
       </div>
     </div>

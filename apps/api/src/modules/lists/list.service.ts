@@ -222,7 +222,7 @@ async function doSendConfirmation(config: Record<string, unknown>, contactEmail:
   const confirmUrl = `${frontendUrl}/confirm/${token}`;
   const settings = config.settings as Record<string, unknown>;
   const fromEmail = (settings.from_email as string) || (settings.username as string) || 'noreply@example.com';
-  const fromName = (settings.from_name as string) || 'MailForge';
+  const fromName = (settings.from_name as string) || 'Rabbit Growth';
 
   const html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
     <h2 style="color: #1f2937;">Confirm your subscription</h2>

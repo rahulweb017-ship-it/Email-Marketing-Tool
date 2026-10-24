@@ -4,6 +4,7 @@ import { env } from '../../config/env.js';
 import { redis } from '../../config/redis.js';
 import { db } from '../../config/database.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
+import { getOrgLimits } from '../usage/usage.service.js';
 
 export interface AuthUser {
   id: string;
@@ -99,4 +100,22 @@ export async function checkTenantStatus(req: Request, _res: Response, next: Next
     // If Redis/DB fails, allow through (don't block legitimate users on infra failure)
     next();
   }
+}
+
+/** Block the route unless the org's plan (or limits_override) enables the named feature flag. */
+export function requireFeature(feature: string) {
+  return async (req: Request, _res: Response, next: NextFunction) => {
+    if (req.user?.is_super_admin && !req.user.org_id) return next();
+    const orgId = req.user?.org_id;
+    if (!orgId) return next(new AppError(403, 'No organization associated with this account'));
+    try {
+      const limits = await getOrgLimits(orgId);
+      if (!limits.features?.[feature]) {
+        return next(new AppError(402, 'This feature is not included in your plan. Upgrade to use it.'));
+      }
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
 }

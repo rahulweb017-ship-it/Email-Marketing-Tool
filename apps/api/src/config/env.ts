@@ -43,4 +43,13 @@ export const env = {
   LINKEDIN_CLIENT_ID: process.env.LINKEDIN_CLIENT_ID || '',
   LINKEDIN_CLIENT_SECRET: process.env.LINKEDIN_CLIENT_SECRET || '',
   SOCIAL_OAUTH_CALLBACK_URL: process.env.SOCIAL_OAUTH_CALLBACK_URL || '',
+
+  // WhatsApp (Meta Cloud API webhooks) — app secret falls back to the Facebook app secret
+  WHATSAPP_APP_SECRET: process.env.WHATSAPP_APP_SECRET || process.env.FACEBOOK_APP_SECRET || '',
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || '',
+  WHATSAPP_GRAPH_VERSION: process.env.WHATSAPP_GRAPH_VERSION || 'v21.0',
+
+  // AI (Claude API) for WhatsApp compose, reply suggestions and auto-replies
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
+  WHATSAPP_AI_MODEL: process.env.WHATSAPP_AI_MODEL || 'claude-opus-5-5',
 } as const;

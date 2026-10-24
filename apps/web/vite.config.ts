@@ -15,6 +15,7 @@ export default defineConfig({
       '/api': 'http://localhost:3001',
       '/t': 'http://localhost:3001',
       '/r': 'http://localhost:3001',
+      '/webhooks': 'http://localhost:3001',
     },
   },
   preview: {
@@ -25,6 +26,7 @@ export default defineConfig({
       '/api': 'http://localhost:3001',
       '/t': 'http://localhost:3001',
       '/r': 'http://localhost:3001',
+      '/webhooks': 'http://localhost:3001',
     },
   },
 });

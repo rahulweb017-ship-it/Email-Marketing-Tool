@@ -12,6 +12,7 @@ import { createOutgoingWebhookWorker } from './workers/outgoing-webhook.worker.j
 import { createEngagementScorerWorker } from './workers/engagement-scorer.worker.js';
 import { createSocialPublisherWorker } from './workers/social-publisher.worker.js';
 import { createSocialMetricsWorker } from './workers/social-metrics.worker.js';
+import { createWhatsAppAiWorker, createWhatsAppCampaignWorker, createWhatsAppInboundWorker } from './workers/whatsapp.worker.js';
 
 // Worker intervals
 const CAMPAIGN_SCHEDULER_INTERVAL_MS = 60_000; // 60s
@@ -22,6 +23,7 @@ const STATS_FLUSH_INTERVAL_MS = 30_000; // 30s
 const ENGAGEMENT_SCORING_INTERVAL_MS = 3_600_000; // 1 hour
 const SOCIAL_SCHEDULE_CHECK_INTERVAL_MS = 60_000; // 60s
 const SOCIAL_METRICS_INTERVAL_MS = 1_800_000; // 30 minutes
+const WHATSAPP_SCHEDULE_CHECK_INTERVAL_MS = 60_000; // 60s
 
 console.log('Starting workers...');
 
@@ -39,6 +41,9 @@ const workers = [
   createEngagementScorerWorker(),
   createSocialPublisherWorker(),
   createSocialMetricsWorker(),
+  createWhatsAppCampaignWorker(),
+  createWhatsAppInboundWorker(),
+  createWhatsAppAiWorker(),
 ];
 
 // Add error logging to all workers
@@ -83,6 +88,10 @@ async function setupRepeatableJobs() {
 
   await queues.socialMetrics.upsertJobScheduler('fetch-social-metrics', {
     every: SOCIAL_METRICS_INTERVAL_MS,
+  }, { data: {} });
+
+  await queues.whatsappCampaign.upsertJobScheduler('check-scheduled-whatsapp', {
+    every: WHATSAPP_SCHEDULE_CHECK_INTERVAL_MS,
   }, { data: {} });
 
   console.log('Repeatable jobs scheduled');

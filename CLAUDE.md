@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-MailForge: a self-hosted, multi-tenant email marketing platform. Monorepo managed by Turborepo + npm workspaces.
+Rabbit Growth: a self-hosted, multi-tenant email marketing platform. Monorepo managed by Turborepo + npm workspaces.
 
 - `apps/api` — Express + TypeScript REST API (`@mailforge/api`)
 - `apps/web` — React 19 + Vite + Tailwind frontend (`@self-hosted-email/web`)
@@ -21,6 +21,7 @@ npm run dev
 # Per-app dev
 npm run dev --workspace=apps/api          # API on :3001 (tsx watch)
 npm run worker:dev --workspace=apps/api   # BullMQ workers (separate process)
+npm run wa:dev --workspace=apps/api       # WhatsApp gateway (QR sessions + paced sender, separate process)
 npm run dev --workspace=apps/web          # Vite on :5173
 
 # Build / lint / test
@@ -42,7 +43,7 @@ npm run docker:up
 npm run docker:down
 ```
 
-In production this host runs three systemd units alongside Maddy MTA: `mailforge-api`, `mailforge-worker`, `mailforge-web` (Vite preview, not `npm run dev`). The frontend talks to the API via Vite's proxy in dev (`/api`, `/t`, `/r` → `:3001`).
+In production this host runs systemd units alongside Maddy MTA: `mailforge-api`, `mailforge-worker`, `mailforge-web` (Vite preview, not `npm run dev`), and `mailforge-whatsapp` (`npm run wa:start` after build, or `npm run wa`). The frontend talks to the API via Vite's proxy in dev and preview (`/api`, `/t`, `/r`, `/webhooks` → `:3001`).
 
 ## Architecture
 
@@ -81,3 +82,13 @@ Postgres via Knex. Migrations in `apps/api/src/db/migrations/` are timestamped a
 `.env` lives at repo root and is loaded by both `apps/api/src/config/env.ts` and `knexfile.ts` (each walks up the path). Defaults in `env.ts` point at the **production-style** services on this host (Postgres `:5432` as `self_hosted_email`, Redis `:6379`), not the docker-compose ones (which use `:5433` / `:6380`). If you start `docker compose up`, override `DATABASE_URL` and `REDIS_URL` accordingly.
 
 Required for anything beyond local poking: `JWT_SECRET`, `HMAC_SECRET` (changing `HMAC_SECRET` invalidates all existing tracking pixels and unsubscribe links). Optional provider creds: SMTP, SendGrid, AWS SES, and Twitter/Facebook/LinkedIn OAuth for the social-media module.
+
+### WhatsApp (apps/api/src/modules/whatsapp/)
+Two providers behind one `WhatsAppSender` interface (`providers/types.ts`): **Meta Cloud API** (`meta-cloud.provider.ts`, official, templates required outside the 24h window) and **QR-linked WhatsApp Web** via Baileys (`gateway/session-manager.ts`, unofficial — ban risk is surfaced in the UI and must stay that way).
+
+- **Third process: `src/whatsapp-gateway.ts`.** Holds the long-lived Baileys sockets and runs the outbound `gateway/dispatcher.ts`. This is the one exception to "only worker.ts runs Workers": it consumes the `whatsapp-session` queue. Only one gateway may run (Redis lock `wa:gateway:lock`). Baileys auth state is stored encrypted in `whatsapp_session_keys`, not on disk.
+- **All sends are queued rows** in `whatsapp_messages` (`status='queued'`). Nothing sends inline — the dispatcher claims rows with `FOR UPDATE SKIP LOCKED` and paces per number (QR: 8–20s gaps, warm-up cap 30/day +20/day ≤250; quiet hours; auto-pause on logout/ban/5 consecutive failures). Conversational replies (`sent_by` user/ai/system) jump the queue and bypass the daily bulk cap. Pacing maths lives in `whatsapp.utils.ts` (unit tested) — keep it pure.
+- **Inbound** (Meta webhook `/webhooks/whatsapp`, signature-checked with the raw body kept by `express.json({ verify })` in `index.ts`; QR socket events) → `whatsapp-inbound` queue → `whatsapp-inbound.service.ts` in the worker: stores messages, applies receipts, STOP/START opt-out, AI handoff, and enqueues `whatsapp-ai-reply`.
+- **Campaign counters** are atomic `increment`s; completion is "no queued/sending rows left" (`maybeCompleteCampaign`), not a Redis hash.
+- Gated by plan feature flags `whatsapp` / `whatsapp_ai` (`requireFeature` in auth.middleware) and limits `max_whatsapp_messages_per_month` / `max_whatsapp_accounts` (Redis counter `org:wa:{org}:{YYYY-MM}`).
+- Campaign audiences require `consent_records.consent_type='whatsapp_marketing'` by default and always exclude `contacts.whatsapp_opt_out`. Phones are matched on `contacts.phone_e164` (normalize with `shared/utils/phone.ts` `toE164`, default region IN).

@@ -28,7 +28,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
           <Link to="/super-admin" className="flex items-center gap-2 text-xl font-bold">
             <Mail className="h-6 w-6 text-red-400" />
             <span className="bg-gradient-to-r from-white to-red-300 bg-clip-text text-transparent">
-              MailForge
+              Rabbit Growth
             </span>
           </Link>
           <div className="flex items-center gap-1.5 mt-2">

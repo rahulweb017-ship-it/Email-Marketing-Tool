@@ -14,6 +14,8 @@ interface Plan {
   max_sending_configs: number;
   max_users: number;
   max_lists: number;
+  max_whatsapp_messages_per_month?: number;
+  max_whatsapp_accounts?: number;
   price_monthly: number | string;
   price_yearly: number | string;
   features: Record<string, boolean>;
@@ -32,6 +34,8 @@ const emptyForm = {
   max_sending_configs: 1,
   max_users: 1,
   max_lists: 5,
+  max_whatsapp_messages_per_month: 0,
+  max_whatsapp_accounts: 0,
   features: {} as Record<string, boolean>,
   price_monthly: 0,
   price_yearly: 0,
@@ -67,6 +71,8 @@ export default function PlansManagementPage() {
       max_sending_configs: Number(plan.max_sending_configs) || 1,
       max_users: Number(plan.max_users) || 1,
       max_lists: Number(plan.max_lists) || 1,
+      max_whatsapp_messages_per_month: Number(plan.max_whatsapp_messages_per_month) || 0,
+      max_whatsapp_accounts: Number(plan.max_whatsapp_accounts) || 0,
       features: (plan as any).features && typeof (plan as any).features === 'object' ? (plan as any).features : {},
       price_monthly: parseFloat(String(plan.price_monthly)) || 0,
       price_yearly: parseFloat(String(plan.price_yearly)) || 0,
@@ -88,6 +94,8 @@ export default function PlansManagementPage() {
       max_sending_configs: Number(form.max_sending_configs) || 1,
       max_users: Number(form.max_users) || 1,
       max_lists: Number(form.max_lists) || 1,
+      max_whatsapp_messages_per_month: Number(form.max_whatsapp_messages_per_month) || 0,
+      max_whatsapp_accounts: Number(form.max_whatsapp_accounts) || 0,
       price_monthly: parseFloat(String(form.price_monthly)) || 0,
       price_yearly: parseFloat(String(form.price_yearly)) || 0,
       sort_order: Number(form.sort_order) || 0,
@@ -158,6 +166,7 @@ export default function PlansManagementPage() {
               <div>{plan.max_sending_configs} sending configs</div>
               <div>{plan.max_campaigns == null ? 'Unlimited' : plan.max_campaigns} campaigns</div>
               <div>{plan.max_automations == null ? 'Unlimited' : plan.max_automations} automations</div>
+              <div>{plan.features?.whatsapp ? `WhatsApp: ${plan.max_whatsapp_accounts ?? 0} numbers, ${(plan.max_whatsapp_messages_per_month ?? 0).toLocaleString()} msgs/month${plan.features?.whatsapp_ai ? ' + AI' : ''}` : 'No WhatsApp'}</div>
             </div>
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-400">
               {plan.org_count} organization{plan.org_count !== 1 ? 's' : ''}
@@ -193,6 +202,18 @@ export default function PlansManagementPage() {
               <div className="grid grid-cols-2 gap-3">
                 <NullableNumberField label="Max Automations" value={form.max_automations} onChange={(v) => setForm({ ...form, max_automations: v })} />
                 <NumberField label="Sort Order" value={form.sort_order} onChange={(v) => setForm({ ...form, sort_order: v })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <NumberField label="WhatsApp Numbers" value={form.max_whatsapp_accounts} onChange={(v) => setForm({ ...form, max_whatsapp_accounts: v })} />
+                <NumberField label="WhatsApp Msgs/Month" value={form.max_whatsapp_messages_per_month} onChange={(v) => setForm({ ...form, max_whatsapp_messages_per_month: v })} />
+              </div>
+              <div className="flex gap-4 text-sm text-gray-700 dark:text-gray-300">
+                {(['whatsapp', 'whatsapp_ai'] as const).map((f) => (
+                  <label key={f} className="flex items-center gap-2">
+                    <input type="checkbox" checked={!!form.features[f]} onChange={(e) => setForm({ ...form, features: { ...form.features, [f]: e.target.checked } })} />
+                    {f === 'whatsapp' ? 'WhatsApp marketing' : 'WhatsApp AI assistant'}
+                  </label>
+                ))}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <FloatField label="Price Monthly ($)" value={form.price_monthly} onChange={(v) => setForm({ ...form, price_monthly: v })} />

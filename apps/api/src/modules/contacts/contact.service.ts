@@ -5,6 +5,7 @@ import { AppError } from '../../shared/middleware/error-handler.js';
 import { normalizeEmail, validateEmail } from '../../shared/utils/email-validator.js';
 import { refreshListCounts } from '../lists/list.service.js';
 import { checkContactLimit } from '../usage/usage.service.js';
+import { toE164 } from '../../shared/utils/phone.js';
 import type { PaginationParams } from '../../shared/utils/pagination.js';
 import type { CreateContactInput, UpdateContactInput, CreateTagInput, BulkActionInput } from './contact.schema.js';
 import { getContactCustomFieldValues, setContactCustomFieldValues } from '../custom-fields/custom-fields.service.js';
@@ -89,6 +90,7 @@ export async function createContact(orgId: string, input: CreateContactInput) {
     last_name: input.last_name || null,
     company_name: input.company_name || null,
     phone: input.phone || null,
+    phone_e164: toE164(input.phone, input.country_code || 'IN'),
     country_code: input.country_code || null,
     custom_fields: JSON.stringify(input.custom_fields || {}),
     preferences_token,
@@ -135,7 +137,10 @@ export async function updateContact(orgId: string, contactId: string, input: Upd
   if (input.first_name !== undefined) updates.first_name = input.first_name || null;
   if (input.last_name !== undefined) updates.last_name = input.last_name || null;
   if (input.company_name !== undefined) updates.company_name = input.company_name || null;
-  if (input.phone !== undefined) updates.phone = input.phone || null;
+  if (input.phone !== undefined) {
+    updates.phone = input.phone || null;
+    updates.phone_e164 = toE164(input.phone, input.country_code || 'IN');
+  }
   if (input.country_code !== undefined) updates.country_code = input.country_code || null;
   if (input.custom_fields) updates.custom_fields = JSON.stringify(input.custom_fields);
 
@@ -219,6 +224,7 @@ export async function bulkImport(orgId: string, contacts: CreateContactInput[], 
       last_name: input.last_name || null,
       company_name: input.company_name || null,
       phone: input.phone || null,
+      phone_e164: toE164(input.phone, input.country_code || 'IN'),
       country_code: input.country_code || null,
       custom_fields: JSON.stringify(input.custom_fields || {}),
       preferences_token: crypto.randomBytes(32).toString('hex'),

@@ -29,6 +29,8 @@ import { transactionalRouter } from './modules/transactional/transactional.contr
 import { consentRouter } from './modules/consent/consent.controller.js';
 import { formRouter, publicFormRouter } from './modules/forms/forms.controller.js';
 import { socialRouter } from './modules/social/social.controller.js';
+import { whatsappRouter } from './modules/whatsapp/whatsapp.controller.js';
+import { whatsappWebhookRouter } from './modules/whatsapp/whatsapp.webhook.js';
 import { confirmSubscription } from './modules/lists/list.service.js';
 import { AppError } from './shared/middleware/error-handler.js';
 
@@ -38,7 +40,11 @@ const app = express();
 app.use(helmet());
 app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
 app.use(morgan('short'));
-app.use(express.json({ limit: '10mb' }));
+// Keep the raw body so webhook signatures (e.g. Meta X-Hub-Signature-256) can be verified
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, _res, buf) => { (req as any).rawBody = buf; },
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
@@ -71,6 +77,7 @@ app.use('/api/v1/consent', consentRouter);
 app.use('/api/v1/forms', formRouter);
 app.use('/api/v1/public/forms', publicFormRouter);
 app.use('/api/v1/social', socialRouter);
+app.use('/api/v1/whatsapp', whatsappRouter);
 
 // Public confirm endpoint (accessible via /api/v1 for frontend)
 app.get('/api/v1/confirm/:token', async (req, res) => {
@@ -87,6 +94,7 @@ app.get('/api/v1/confirm/:token', async (req, res) => {
 // Public routes (no /api/v1 prefix)
 app.use('/', trackingRouter);
 app.use('/', webhookRouter);
+app.use('/', whatsappWebhookRouter);
 
 // Also mount tracking under /api/v1 for frontend proxy access (preferences endpoints)
 app.use('/api/v1', trackingRouter);

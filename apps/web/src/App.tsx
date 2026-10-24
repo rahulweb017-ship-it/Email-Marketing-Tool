@@ -30,6 +30,13 @@ import SocialMediaPage from './pages/SocialMediaPage';
 import SocialAccountsPage from './pages/SocialAccountsPage';
 import SocialPostComposer from './pages/SocialPostComposer';
 import SocialCalendarPage from './pages/SocialCalendarPage';
+import WhatsAppDashboardPage from './pages/whatsapp/WhatsAppDashboardPage';
+import WhatsAppAccountsPage from './pages/whatsapp/WhatsAppAccountsPage';
+import WhatsAppInboxPage from './pages/whatsapp/WhatsAppInboxPage';
+import WhatsAppCampaignsPage from './pages/whatsapp/WhatsAppCampaignsPage';
+import WhatsAppCampaignDetailPage from './pages/whatsapp/WhatsAppCampaignDetailPage';
+import WhatsAppTemplatesPage from './pages/whatsapp/WhatsAppTemplatesPage';
+import WhatsAppAIPage from './pages/whatsapp/WhatsAppAIPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuthStore();
@@ -135,6 +142,13 @@ export default function App() {
                 <Route path="/social/compose" element={<SocialPostComposer />} />
                 <Route path="/social/compose/:id" element={<SocialPostComposer />} />
                 <Route path="/social/calendar" element={<SocialCalendarPage />} />
+                <Route path="/whatsapp" element={<WhatsAppDashboardPage />} />
+                <Route path="/whatsapp/inbox" element={<WhatsAppInboxPage />} />
+                <Route path="/whatsapp/campaigns" element={<WhatsAppCampaignsPage />} />
+                <Route path="/whatsapp/campaigns/:id" element={<WhatsAppCampaignDetailPage />} />
+                <Route path="/whatsapp/templates" element={<WhatsAppTemplatesPage />} />
+                <Route path="/whatsapp/accounts" element={<WhatsAppAccountsPage />} />
+                <Route path="/whatsapp/ai" element={<WhatsAppAIPage />} />
                 {/* <Route path="/forms" element={<SignupFormsPage />} /> Hidden — managed from super admin */}
                 <Route path="/settings" element={<SettingsPage />} />
               </Routes>
