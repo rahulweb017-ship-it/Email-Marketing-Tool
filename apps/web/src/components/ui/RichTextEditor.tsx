@@ -109,6 +109,7 @@ import {
   Undo2, Redo2, Palette, Type,
 } from 'lucide-react';
 import clsx from 'clsx';
+import MediaLibraryModal from '../media/MediaLibraryModal';
 
 interface RichTextEditorProps {
   value: string;
@@ -146,6 +147,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
   const [linkUrl, setLinkUrl] = useState('');
   const linkInputRef = useRef<HTMLInputElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showMedia, setShowMedia] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -252,12 +254,19 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     setShowLinkInput(false);
   }, [editor, linkUrl]);
 
-  const addImage = useCallback(() => {
+  const insertMedia = useCallback((asset: { url: string; name: string; kind: string }) => {
+    setShowMedia(false);
     if (!editor) return;
-    const url = window.prompt('Enter image URL:');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+    if (asset.kind === 'image') {
+      editor.chain().focus().setImage({ src: asset.url, alt: asset.name }).run();
+      return;
     }
+    const label = asset.kind === 'video' ? 'Watch the video' : `Download ${asset.name}`;
+    editor.chain().focus().insertContent({
+      type: 'text',
+      text: label,
+      marks: [{ type: 'link', attrs: { href: asset.url } }],
+    }).run();
   }, [editor]);
 
   useEffect(() => {
@@ -391,7 +400,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
         </ToolbarButton>
 
         {/* Image */}
-        <ToolbarButton onClick={addImage} title="Insert image">
+        <ToolbarButton onClick={() => setShowMedia(true)} title="Insert image or file from your media library">
           <ImageIcon className={iconSize} />
         </ToolbarButton>
 
@@ -425,6 +434,13 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
 
       {/* Editor content */}
       <EditorContent editor={editor} />
+
+      <MediaLibraryModal
+        isOpen={showMedia}
+        title="Insert media"
+        onClose={() => setShowMedia(false)}
+        onSelect={insertMedia}
+      />
     </div>
   );
 }

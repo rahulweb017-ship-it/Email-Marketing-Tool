@@ -98,7 +98,11 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-          Don't have an account? <Link to="/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">Create one</Link>
+          Don't have an account? <Link to="/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">Request a demo</Link>
+          {' '}or <Link to="/signup" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">create one</Link>
+        </p>
+        <p className="text-center text-xs mt-3">
+          <Link to="/" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">Back to website</Link>
         </p>
       </motion.div>
     </div>

@@ -1,69 +1,301 @@
-/* GrapesJS theme overrides to match Rabbit Growth indigo palette */
+/* GrapesJS theme: light panels that match the rest of Rabbit Growth */
+
+:root {
+  --rg-panel-w: 320px;
+}
 
 .gjs-one-bg {
-  background-color: #1e1b4b;
+  background-color: #ffffff;
 }
 
 .gjs-two-color {
-  color: #a5b4fc;
+  color: #374151;
 }
 
 .gjs-three-bg {
-  background-color: #312e81;
+  background-color: #4f46e5;
+  color: #ffffff;
 }
 
 .gjs-four-color,
 .gjs-four-color-h:hover {
-  color: #818cf8;
+  color: #4f46e5;
 }
 
-.gjs-pn-panel {
-  background-color: #1e1b4b;
-  border-color: #312e81;
+.gjs-editor {
+  font-family: inherit;
+  font-size: 13px;
+}
+
+/* Wider right-hand panel so labels and fields are not cut off */
+.gjs-cv-canvas {
+  width: calc(100% - var(--rg-panel-w));
+  background-color: #eef0f4;
 }
 
 .gjs-pn-views-container {
-  background-color: #1e1b4b;
-  border-color: #312e81;
+  width: var(--rg-panel-w);
+  background-color: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  box-shadow: none;
+  padding-top: 52px;
+}
+
+.gjs-pn-views {
+  width: var(--rg-panel-w);
+  border-bottom: 1px solid #e5e7eb;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  height: 52px;
+  padding: 0;
+}
+
+.gjs-pn-options {
+  right: var(--rg-panel-w);
+}
+
+.gjs-pn-panel {
+  background-color: #ffffff;
+  border-color: #e5e7eb;
+  color: #374151;
+}
+
+.gjs-pn-devices-c,
+.gjs-pn-options {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.gjs-pn-btn {
+  color: #4b5563;
+  border-radius: 6px;
+}
+
+.gjs-pn-btn:hover {
+  background-color: #f3f4f6;
+}
+
+/* Panel tabs: icon with a readable label underneath */
+.gjs-pn-views .gjs-pn-buttons {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.gjs-pn-views .gjs-pn-btn {
+  flex: 1;
+  height: 100%;
+  margin: 0;
+  padding: 6px 0 4px;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 18px;
+}
+
+.gjs-pn-views .gjs-pn-btn[data-label]::after {
+  content: attr(data-label);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .gjs-pn-views .gjs-pn-btn.gjs-pn-active {
-  color: #818cf8;
+  color: #4f46e5;
+  background-color: #eef2ff;
+  box-shadow: inset 0 -2px 0 #4f46e5;
+}
+
+.gjs-pn-btn.gjs-pn-active {
+  color: #4f46e5;
+  background-color: #eef2ff;
+  box-shadow: none;
+}
+
+/* Blocks */
+.gjs-blocks-c {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px 10px 12px;
+}
+
+.gjs-block-categories .gjs-block-category .gjs-title {
+  background-color: #f9fafb;
+  color: #111827;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 12px;
 }
 
 .gjs-block {
-  border: 1px solid #312e81;
-  border-radius: 6px;
-  min-height: auto;
-  padding: 8px;
+  width: auto;
+  min-height: 78px;
+  margin: 0;
+  padding: 10px 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #4b5563;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .gjs-block:hover {
+  color: #4f46e5;
   border-color: #818cf8;
-  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
 }
 
-.gjs-cv-canvas {
-  background-color: #f8fafc;
+.gjs-block svg {
+  width: 32px;
+  height: 32px;
 }
 
+.gjs-block-label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Style manager */
+.gjs-sm-sector .gjs-sm-sector-title,
+.gjs-sm-sector-title {
+  background-color: #f9fafb;
+  color: #111827;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 12px;
+}
+
+.gjs-sm-properties {
+  padding: 8px 10px;
+}
+
+.gjs-sm-label,
+.gjs-trt-trait .gjs-label,
+.gjs-label-wrp {
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.gjs-field,
+.gjs-clm-tags .gjs-field {
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #111827;
+}
+
+.gjs-field input,
+.gjs-field select,
+.gjs-field textarea {
+  color: #111827;
+}
+
+.gjs-field-arrow-u {
+  border-bottom-color: #6b7280;
+}
+
+.gjs-field-arrow-d {
+  border-top-color: #6b7280;
+}
+
+.gjs-radio-item {
+  border-color: #d1d5db;
+}
+
+.gjs-radio-item input:checked + .gjs-radio-item-label {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.gjs-sm-composite,
+.gjs-sm-field.gjs-sm-composite,
+.gjs-sm-stack {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+/* Selector (classes) box is technical; styling goes to the selected element instead */
+.gjs-clm-tags {
+  display: none;
+}
+
+/* Traits (settings) */
+.gjs-trt-traits {
+  padding: 8px 10px;
+}
+
+.gjs-trt-header {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Layers */
+.gjs-layer {
+  background-color: #ffffff;
+  color: #374151;
+}
+
+.gjs-layer.gjs-selected .gjs-layer-item {
+  background-color: #eef2ff;
+}
+
+.gjs-layer-item {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Canvas helpers */
 .gjs-toolbar {
   background-color: #4f46e5;
+  border-radius: 6px;
 }
 
 .gjs-toolbar-item {
-  color: white;
+  color: #ffffff;
+}
+
+.gjs-badge {
+  background-color: #4f46e5;
+  border-radius: 4px;
 }
 
 .gjs-rte-toolbar {
-  background-color: #1e1b4b;
-  border-color: #312e81;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.gjs-sm-sector .gjs-sm-sector-title {
-  background-color: #312e81;
-  color: #c7d2fe;
-  border-color: #3730a3;
+.gjs-rte-action {
+  color: #374151;
+  border-right-color: #e5e7eb;
+}
+
+.gjs-rte-active {
+  background-color: #e0e7ff;
+}
+
+/* Built-in GrapesJS modal (import / code view) */
+.gjs-mdl-dialog {
+  background-color: #ffffff;
+  color: #111827;
+  border-radius: 12px;
+}
+
+.gjs-mdl-header {
+  border-bottom: 1px solid #e5e7eb;
 }
 
 /* Hide unnecessary panels for email editor */

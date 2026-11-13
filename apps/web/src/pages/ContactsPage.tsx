@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Search, Upload, Users, Edit, Trash2, Download, CheckCircle, RefreshCw, Star } from 'lucide-react';
+import { Plus, Search, Upload, Users, Edit, Trash2, Download, CheckCircle, RefreshCw, Star, Columns3 } from 'lucide-react';
 import api from '../api/client';
 import Pagination from '../components/ui/Pagination';
 import Badge from '../components/ui/Badge';
@@ -30,7 +30,95 @@ interface Contact {
   validation_status: 'unknown' | 'valid' | 'invalid' | 'risky' | 'disposable';
   validation_checked_at: string | null;
   engagement_score: number;
+  whatsapp_opt_out?: boolean;
+  source?: string | null;
   created_at: string;
+  updated_at?: string;
+}
+
+type ColumnKey = 'email' | 'name' | 'phone' | 'company' | 'country' | 'whatsapp' | 'status' | 'validation' | 'score' | 'source' | 'created' | 'updated';
+
+const COLUMNS: { key: ColumnKey; label: string; defaultVisible: boolean }[] = [
+  { key: 'email', label: 'Email', defaultVisible: true },
+  { key: 'name', label: 'Name', defaultVisible: true },
+  { key: 'phone', label: 'Phone', defaultVisible: true },
+  { key: 'company', label: 'Company', defaultVisible: true },
+  { key: 'country', label: 'Country', defaultVisible: false },
+  { key: 'whatsapp', label: 'WhatsApp', defaultVisible: false },
+  { key: 'status', label: 'Status', defaultVisible: true },
+  { key: 'validation', label: 'Validation', defaultVisible: true },
+  { key: 'score', label: 'Score', defaultVisible: true },
+  { key: 'source', label: 'Source', defaultVisible: false },
+  { key: 'created', label: 'Added', defaultVisible: true },
+  { key: 'updated', label: 'Last Updated', defaultVisible: false },
+];
+
+const COLUMNS_STORAGE_KEY = 'contacts_visible_columns';
+const DEFAULT_COLUMNS = COLUMNS.filter((c) => c.defaultVisible).map((c) => c.key);
+
+function loadVisibleColumns(): ColumnKey[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(COLUMNS_STORAGE_KEY) || 'null');
+    if (Array.isArray(saved)) {
+      const valid = saved.filter((k): k is ColumnKey => COLUMNS.some((c) => c.key === k));
+      if (valid.length) return valid;
+    }
+  } catch { /* corrupted value: fall back to defaults */ }
+  return DEFAULT_COLUMNS;
+}
+
+function ColumnPicker({ visible, onChange }: { visible: ColumnKey[]; onChange: (cols: ColumnKey[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  const toggle = (key: ColumnKey) => {
+    if (visible.includes(key)) {
+      if (visible.length > 1) onChange(visible.filter((k) => k !== key));
+    } else {
+      onChange(COLUMNS.map((c) => c.key).filter((k) => k === key || visible.includes(k)));
+    }
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-sm dark:text-gray-300 h-full"
+      >
+        <Columns3 className="h-4 w-4" /> Columns
+      </button>
+      {open && (
+        <div className="absolute right-0 z-20 mt-2 w-56 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg p-2">
+          <p className="px-2 pb-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Show columns</p>
+          {COLUMNS.map((col) => (
+            <label key={col.key} className="flex items-center gap-2 px-2 py-1.5 rounded text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">
+              <input
+                type="checkbox"
+                checked={visible.includes(col.key)}
+                disabled={visible.length === 1 && visible.includes(col.key)}
+                onChange={() => toggle(col.key)}
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+              />
+              {col.label}
+            </label>
+          ))}
+          <button
+            onClick={() => onChange(DEFAULT_COLUMNS)}
+            className="mt-1 w-full border-t dark:border-gray-700 pt-2 text-left px-2 text-xs text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            Reset to default
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 const validationBadgeConfig: Record<string, { label: string; variant: 'success' | 'danger' | 'warning' | 'info' | 'neutral' }> = {
@@ -95,6 +183,12 @@ export default function ContactsPage() {
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string }[]>([]);
 
   const [perPage, setPerPage] = useState(20);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(loadVisibleColumns);
+
+  const updateColumns = (cols: ColumnKey[]) => {
+    setVisibleColumns(cols);
+    localStorage.setItem(COLUMNS_STORAGE_KEY, JSON.stringify(cols));
+  };
 
   const fetchContacts = useCallback(async () => {
     setLoading(true);
@@ -237,6 +331,60 @@ export default function ContactsPage() {
 
   const isAllSelected = contacts.length > 0 && selected.size === contacts.length;
 
+  const openContact = (c: Contact) => navigate(`/contacts/${c.id}`);
+  const linkClass = 'text-left hover:text-primary-600 dark:hover:text-primary-400 hover:underline';
+
+  const renderCell = (key: ColumnKey, c: Contact): ReactNode => {
+    switch (key) {
+      case 'email':
+        return c.email
+          ? <button onClick={() => openContact(c)} className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline break-all text-left">{c.email}</button>
+          : <span className="text-gray-400">-</span>;
+      case 'name':
+        return <button onClick={() => openContact(c)} className={linkClass}>{[c.first_name, c.last_name].filter(Boolean).join(' ') || (c.email ? '-' : 'View contact')}</button>;
+      case 'phone': {
+        const phone = c.phone_e164 || c.phone;
+        return phone ? <span className="whitespace-nowrap">{phone}</span> : <span className="text-gray-400">-</span>;
+      }
+      case 'company':
+        return c.company_name || '-';
+      case 'country':
+        return c.country_code || '-';
+      case 'whatsapp':
+        if (!c.phone_e164) return <span className="text-gray-400">-</span>;
+        return <Badge variant={c.whatsapp_opt_out ? 'danger' : 'success'}>{c.whatsapp_opt_out ? 'Opted out' : 'Reachable'}</Badge>;
+      case 'status':
+        return <Badge variant={c.is_blacklisted ? 'danger' : 'success'}>{c.is_blacklisted ? 'Blacklisted' : 'Active'}</Badge>;
+      case 'validation':
+        if (!c.email) return <span className="text-gray-400">-</span>;
+        return (
+          <div className="flex items-center gap-2">
+            <Badge variant={validationBadgeConfig[c.validation_status || 'unknown']?.variant || 'neutral'}>
+              {validationBadgeConfig[c.validation_status || 'unknown']?.label || 'Unknown'}
+            </Badge>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleValidate(c.id); }}
+              disabled={validatingId === c.id}
+              className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors disabled:opacity-50"
+              title="Validate email"
+            >
+              <CheckCircle className={`h-3.5 w-3.5 ${validatingId === c.id ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        );
+      case 'score':
+        return <ScoreBadge score={c.engagement_score || 0} />;
+      case 'source':
+        return c.source ? c.source.replace(/_/g, ' ') : '-';
+      case 'created':
+        return <span className="whitespace-nowrap">{new Date(c.created_at).toLocaleDateString()}</span>;
+      case 'updated':
+        return c.updated_at ? <span className="whitespace-nowrap">{new Date(c.updated_at).toLocaleDateString()}</span> : '-';
+    }
+  };
+
+  const shownColumns = COLUMNS.filter((col) => visibleColumns.includes(col.key));
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -270,15 +418,18 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search contacts by email or name..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
-        />
+      <div className="flex gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search contacts by email, name or phone..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
+          />
+        </div>
+        <ColumnPicker visible={visibleColumns} onChange={updateColumns} />
       </div>
 
       {loading ? (
@@ -294,7 +445,7 @@ export default function ContactsPage() {
         </div>
       ) : (
         <>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800/50 border-b dark:border-gray-700">
                 <tr>
@@ -306,13 +457,9 @@ export default function ContactsPage() {
                       className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:bg-gray-700"
                     />
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Company</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Validation</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Score</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Added</th>
+                  {shownColumns.map((col) => (
+                    <th key={col.key} className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase whitespace-nowrap">{col.label}</th>
+                  ))}
                   <th className="w-10"></th>
                 </tr>
               </thead>
@@ -333,49 +480,9 @@ export default function ContactsPage() {
                         className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:bg-gray-700"
                       />
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium">
-                      <button
-                        onClick={() => navigate(`/contacts/${c.id}`)}
-                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline"
-                      >
-                        {c.email || c.phone_e164 || c.phone || '(no email)'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                      <button
-                        onClick={() => navigate(`/contacts/${c.id}`)}
-                        className="hover:text-primary-600 dark:hover:text-primary-400 hover:underline"
-                      >
-                        {[c.first_name, c.last_name].filter(Boolean).join(' ') || '-'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{c.company_name || '-'}</td>
-                    <td className="px-6 py-4">
-                      <Badge variant={c.is_blacklisted ? 'danger' : 'success'}>
-                        {c.is_blacklisted ? 'Blacklisted' : 'Active'}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={validationBadgeConfig[c.validation_status || 'unknown']?.variant || 'neutral'}>
-                          {validationBadgeConfig[c.validation_status || 'unknown']?.label || 'Unknown'}
-                        </Badge>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleValidate(c.id); }}
-                          disabled={validatingId === c.id}
-                          className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors disabled:opacity-50"
-                          title="Validate email"
-                        >
-                          <CheckCircle className={`h-3.5 w-3.5 ${validatingId === c.id ? 'animate-spin' : ''}`} />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <ScoreBadge score={c.engagement_score || 0} />
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(c.created_at).toLocaleDateString()}
-                    </td>
+                    {shownColumns.map((col) => (
+                      <td key={col.key} className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{renderCell(col.key, c)}</td>
+                    ))}
                     <td className="px-6 py-4">
                       <DropdownMenu items={[
                         { label: 'Edit', icon: Edit, onClick: () => { setEditContact(c); setShowForm(true); } },

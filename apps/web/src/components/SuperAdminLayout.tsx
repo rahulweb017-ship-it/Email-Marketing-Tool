@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '../stores/auth.store';
 import {
   LayoutDashboard, Building2, CreditCard, ClipboardList,
-  LogOut, Shield, Mail,
+  LogOut, Shield, Mail, Inbox,
 } from 'lucide-react';
 import clsx from 'clsx';
 import ToastContainer from './ui/Toast';
@@ -13,6 +13,7 @@ const navItems = [
   { path: '/super-admin', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/super-admin/tenants', label: 'Tenants', icon: Building2 },
   { path: '/super-admin/plans', label: 'Plans', icon: CreditCard },
+  { path: '/super-admin/enquiries', label: 'Enquiries', icon: Inbox },
   { path: '/super-admin/audit-logs', label: 'Audit Logs', icon: ClipboardList },
 ];
 

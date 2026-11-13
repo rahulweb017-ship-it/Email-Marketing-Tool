@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Undo2, Redo2, CheckCircle, Circle } from 'lucide-react';
+import { ArrowLeft, Save, Undo2, Redo2, CheckCircle, Circle, ImagePlus } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import grapesjs, { type Editor } from 'grapesjs';
+import grapesjs, { type Editor, type Component } from 'grapesjs';
 import newsletterPreset from 'grapesjs-preset-newsletter';
 import 'grapesjs/dist/css/grapes.min.css';
 import '../styles/grapesjs-overrides.css';
@@ -15,6 +15,27 @@ import EditorOnboarding from '../components/templates/EditorOnboarding';
 import DragHint from '../components/templates/DragHint';
 import EditorHelpButton from '../components/templates/EditorHelpButton';
 import SaveCelebration from '../components/templates/SaveCelebration';
+import MediaLibraryModal from '../components/media/MediaLibraryModal';
+import type { MediaAsset } from '../api/media';
+import { emailBlocks, MEDIA_BLOCK_IDS, makeCellTextEditable, makeEditorTextEditable } from '../components/templates/editorBlocks';
+
+interface AssetPickerProps {
+  select: (asset: string, complete?: boolean) => void;
+}
+
+type PickedMedia = Pick<MediaAsset, 'url' | 'name' | 'kind' | 'width' | 'height'>;
+
+const escapeAttr = (v: string) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+function mediaSnippet(asset: PickedMedia) {
+  const url = escapeAttr(asset.url);
+  if (asset.kind === 'image') {
+    const width = asset.width ? Math.min(asset.width, 552) : 552;
+    return `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 12px 24px;"><tr><td align="center"><img src="${url}" alt="${escapeAttr(asset.name)}" width="${width}" style="display: block; width: 100%; max-width: ${width}px; height: auto; border: 0; border-radius: 8px;" /></td></tr></table>`;
+  }
+  const label = asset.kind === 'video' ? '&#9654; Watch the video' : 'Download PDF';
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 16px 24px;"><tr><td align="center"><a href="${url}" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-family: Arial, sans-serif; font-size: 15px; font-weight: bold; padding: 12px 28px; border-radius: 6px; text-decoration: none;">${label}</a></td></tr></table>`;
+}
 
 const ONBOARDING_KEY = 'mailforge_editor_onboarding_done';
 
@@ -38,6 +59,8 @@ export default function TemplateEditorPage() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'unsaved' | 'idle'>('idle');
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const templateBodyRef = useRef<string>('');
+  const [assetPicker, setAssetPicker] = useState<AssetPickerProps | null>(null);
+  const [showMedia, setShowMedia] = useState(false);
 
   const handleSave = useCallback(async () => {
     if (!editorRef.current || !id) return;
@@ -81,13 +104,18 @@ export default function TemplateEditorPage() {
         // Initialize GrapesJS
         const editor = grapesjs.init({
           container: containerRef.current!,
-          plugins: [newsletterPreset],
-          pluginsOpts: {
-            [newsletterPreset as unknown as string]: {
+          // The preset reads its options from its second argument; keying pluginsOpts by the function never applied them
+          plugins: [
+            (ed: Editor) => newsletterPreset(ed, {
               modalTitleImport: 'Import HTML',
               importPlaceholder: '<table>...</table>',
-            },
-          },
+              blocks: ['sect100', 'sect50', 'sect30', 'sect37', 'grid-items', 'list-items', 'quote'],
+              block: () => ({ category: 'Layouts' }),
+              useCustomTheme: false,
+              showBlocksOnLoad: true,
+              showStylesOnChange: true,
+            }),
+          ],
           storageManager: false,
           height: '100%',
           width: 'auto',
@@ -97,116 +125,49 @@ export default function TemplateEditorPage() {
               { name: 'Mobile', width: '375px', widthMedia: '480px' },
             ],
           },
-          blockManager: {
-            appendTo: '.gjs-blocks-c',
-            blocks: [
-              {
-                id: 'header-block',
-                label: 'Header',
-                category: 'Email Sections',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="2" y="4" width="20" height="6" rx="1" fill="#4f46e5" opacity="0.2"/><rect x="6" y="6" width="12" height="2" rx="0.5" fill="#4f46e5"/></svg>',
-                attributes: { title: 'Email header with company name' },
-                content: `<table width="100%" style="background-color: #4f46e5; padding: 20px;">
-                  <tr><td style="text-align: center; color: white; font-size: 24px; font-weight: bold;">Your Company</td></tr>
-                </table>`,
-              },
-              {
-                id: 'hero-block',
-                label: 'Hero',
-                category: 'Email Sections',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="2" y="2" width="20" height="20" rx="2" fill="#4f46e5" opacity="0.1"/><rect x="5" y="6" width="14" height="2" rx="0.5" fill="#4f46e5"/><rect x="7" y="10" width="10" height="1.5" rx="0.5" fill="#4f46e5" opacity="0.4"/><rect x="8" y="14" width="8" height="3" rx="1.5" fill="#4f46e5"/></svg>',
-                attributes: { title: 'Hero section with headline, text and CTA button' },
-                content: `<table width="100%" style="padding: 40px 20px; text-align: center;">
-                  <tr><td><h1 style="font-size: 28px; margin-bottom: 16px;">Main Headline</h1>
-                  <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">Supporting text for your email campaign</p>
-                  <a href="#" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Call to Action</a></td></tr>
-                </table>`,
-              },
-              {
-                id: 'text-block',
-                label: 'Text Block',
-                category: 'Content',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="4" y="5" width="16" height="1.5" rx="0.5" fill="#6b7280"/><rect x="4" y="9" width="14" height="1.5" rx="0.5" fill="#6b7280" opacity="0.6"/><rect x="4" y="13" width="16" height="1.5" rx="0.5" fill="#6b7280" opacity="0.6"/><rect x="4" y="17" width="10" height="1.5" rx="0.5" fill="#6b7280" opacity="0.4"/></svg>',
-                attributes: { title: 'Simple text paragraph' },
-                content: `<table width="100%" style="padding: 20px;">
-                  <tr><td style="color: #374151; font-size: 15px; line-height: 1.6;">Write your content here. Click to edit this text and replace it with your own message.</td></tr>
-                </table>`,
-              },
-              {
-                id: 'image-block',
-                label: 'Image',
-                category: 'Content',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="3" y="4" width="18" height="16" rx="2" fill="#e5e7eb"/><circle cx="8" cy="9" r="2" fill="#9ca3af"/><path d="M3 16l5-5 3 3 4-4 6 6v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2z" fill="#9ca3af" opacity="0.5"/></svg>',
-                attributes: { title: 'Image placeholder' },
-                content: `<table width="100%" style="padding: 20px; text-align: center;">
-                  <tr><td><img src="https://placehold.co/560x200/e5e7eb/9ca3af?text=Your+Image" alt="Placeholder" style="max-width: 100%; border-radius: 8px;" /></td></tr>
-                </table>`,
-              },
-              {
-                id: 'two-column',
-                label: '2 Columns',
-                category: 'Layout',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="2" y="4" width="9" height="16" rx="1" fill="#4f46e5" opacity="0.2"/><rect x="13" y="4" width="9" height="16" rx="1" fill="#4f46e5" opacity="0.2"/></svg>',
-                attributes: { title: 'Two-column layout' },
-                content: `<table width="100%" style="padding: 20px;">
-                  <tr>
-                    <td width="50%" style="padding: 10px; vertical-align: top;"><h3>Column 1</h3><p style="color: #6b7280;">Content here</p></td>
-                    <td width="50%" style="padding: 10px; vertical-align: top;"><h3>Column 2</h3><p style="color: #6b7280;">Content here</p></td>
-                  </tr>
-                </table>`,
-              },
-              {
-                id: 'button-block',
-                label: 'Button',
-                category: 'Content',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="4" y="8" width="16" height="8" rx="4" fill="#4f46e5"/><rect x="8" y="11" width="8" height="2" rx="1" fill="white"/></svg>',
-                attributes: { title: 'Call-to-action button' },
-                content: `<table width="100%" style="padding: 20px; text-align: center;">
-                  <tr><td><a href="#" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Click Here</a></td></tr>
-                </table>`,
-              },
-              {
-                id: 'divider-block',
-                label: 'Divider',
-                category: 'Layout',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="4" y="11" width="16" height="2" rx="1" fill="#e5e7eb"/></svg>',
-                attributes: { title: 'Horizontal divider line' },
-                content: `<table width="100%" style="padding: 10px 20px;">
-                  <tr><td><hr style="border: none; border-top: 1px solid #e5e7eb;" /></td></tr>
-                </table>`,
-              },
-              {
-                id: 'social-block',
-                label: 'Social Links',
-                category: 'Social',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><circle cx="6" cy="12" r="3" fill="#4f46e5" opacity="0.3"/><circle cx="12" cy="12" r="3" fill="#4f46e5" opacity="0.5"/><circle cx="18" cy="12" r="3" fill="#4f46e5" opacity="0.7"/></svg>',
-                attributes: { title: 'Social media links' },
-                content: `<table width="100%" style="padding: 20px; text-align: center;">
-                  <tr><td>
-                    <a href="#" style="color: #4f46e5; text-decoration: none; margin: 0 8px;">Facebook</a>
-                    <a href="#" style="color: #4f46e5; text-decoration: none; margin: 0 8px;">Twitter</a>
-                    <a href="#" style="color: #4f46e5; text-decoration: none; margin: 0 8px;">LinkedIn</a>
-                    <a href="#" style="color: #4f46e5; text-decoration: none; margin: 0 8px;">Instagram</a>
-                  </td></tr>
-                </table>`,
-              },
-              {
-                id: 'footer-block',
-                label: 'Footer',
-                category: 'Email Sections',
-                media: '<svg viewBox="0 0 24 24" width="40" height="40"><rect x="2" y="14" width="20" height="6" rx="1" fill="#6b7280" opacity="0.2"/><rect x="6" y="16" width="12" height="1" rx="0.5" fill="#6b7280" opacity="0.4"/><rect x="8" y="18" width="8" height="1" rx="0.5" fill="#6b7280" opacity="0.3"/></svg>',
-                attributes: { title: 'Email footer with unsubscribe link' },
-                content: `<table width="100%" style="background-color: #f3f4f6; padding: 20px; text-align: center;">
-                  <tr><td>
-                    <p style="color: #6b7280; font-size: 12px; margin: 0;">Your Company Name, 123 Street, City</p>
-                    <p style="color: #6b7280; font-size: 12px; margin: 8px 0 0;"><a href="{{unsubscribe_url}}" style="color: #4f46e5;">Unsubscribe</a> | <a href="#" style="color: #4f46e5;">View in browser</a></p>
-                  </td></tr>
-                </table>`,
-              },
-            ],
+          assetManager: {
+            custom: {
+              open: (props: AssetPickerProps) => setAssetPicker({ select: props.select }),
+              close: () => setAssetPicker(null),
+            },
           },
+          blockManager: { blocks: emailBlocks },
+          // Style the clicked element itself rather than every element sharing its CSS class
+          selectorManager: { componentFirst: true },
         });
 
+        editor.on('block:drag:stop', (dropped: Component | Component[] | undefined, block?: { getId?: () => string }) => {
+          const comps = (Array.isArray(dropped) ? dropped : [dropped]).filter(Boolean) as Component[];
+          if (!comps.length) return;
+          comps.forEach((c) => makeCellTextEditable(c));
+          if (block?.getId && MEDIA_BLOCK_IDS.has(block.getId())) {
+            const img = comps[0].get('type') === 'image' ? comps[0] : comps[0].find('img')[0];
+            if (img) {
+              editor.select(img);
+              editor.AssetManager.open({
+                target: img,
+                types: ['image'],
+                select: (asset: { getSrc: () => string }, complete?: boolean) => {
+                  img.set({ src: asset.getSrc() });
+                  if (complete) editor.AssetManager.close();
+                },
+              });
+            }
+          }
+        });
+
+        editor.onReady(() => {
+          const titles: Record<string, string> = {
+            'open-sm': 'Style: colors, fonts, spacing',
+            'open-tm': 'Settings: links, image alt text',
+            'open-layers': 'Layers: page structure',
+            'open-blocks': 'Blocks: drag content into your email',
+          };
+          Object.entries(titles).forEach(([btnId, title]) => {
+            editor.Panels.getButton('views', btnId)?.set('attributes', { title, 'data-label': title.split(':')[0] });
+          });
+          editor.StyleManager.getSectors().forEach((sector: { setOpen: (open: boolean) => void }) => sector.setOpen(true));
+        });
         // Load existing content
         const hasDesign = data.body_design && Object.keys(data.body_design).length > 0;
         const hasHtml = data.body_html && data.body_html.trim().length > 0;
@@ -216,6 +177,7 @@ export default function TemplateEditorPage() {
         } else if (hasHtml) {
           editor.setComponents(data.body_html);
         }
+        if (makeEditorTextEditable(editor) > 0) editor.UndoManager.clear();
 
         // Track undo/redo availability
         const updateUndoRedo = () => {
@@ -270,6 +232,7 @@ export default function TemplateEditorPage() {
   const handleGallerySelect = (html: string) => {
     if (editorRef.current && html) {
       editorRef.current.setComponents(html);
+      makeEditorTextEditable(editorRef.current);
     }
     setShowGallery(false);
     // After gallery, show onboarding if first visit
@@ -291,6 +254,32 @@ export default function TemplateEditorPage() {
     setShowOnboarding(true);
   };
 
+  const handleInsertMedia = (asset: PickedMedia) => {
+    setShowMedia(false);
+    const editor = editorRef.current;
+    if (!editor) return;
+    const selected = editor.getSelected();
+    if (asset.kind === 'image' && selected?.get('type') === 'image') {
+      selected.set({ src: asset.url });
+      return;
+    }
+    const wrapper = editor.getWrapper();
+    if (!wrapper) return;
+    // Insert next to the selection inside the same cell, so it stays within the email's content width
+    let anchor: Component | undefined = selected;
+    while (anchor) {
+      const parent: Component | undefined = anchor.parent();
+      const tag = String(parent?.get('tagName') || '').toLowerCase();
+      if (!parent || parent === wrapper || tag === 'td' || tag === 'th') break;
+      anchor = parent;
+    }
+    const target = anchor?.parent() ?? wrapper;
+    const at = anchor ? target.components().indexOf(anchor) + 1 : target.components().length;
+    const added = target.components().add(mediaSnippet(asset), { at });
+    const first = Array.isArray(added) ? added[0] : added;
+    if (first) editor.select(first);
+  };
+
   const handleUndo = () => {
     editorRef.current?.UndoManager.undo();
   };
@@ -309,6 +298,7 @@ export default function TemplateEditorPage() {
           </button>
           <div className="h-6 w-px bg-gray-300" />
           <h1 className="font-semibold">{templateName || 'Template Editor'}</h1>
+          <span className="hidden xl:inline text-xs text-gray-500">Drag blocks from the right panel. Double-click text to edit it, double-click an image to replace it.</span>
 
           {/* Save status indicator */}
           {saveStatus !== 'idle' && (
@@ -345,6 +335,15 @@ export default function TemplateEditorPage() {
             title="Redo (Ctrl+Y)"
           >
             <Redo2 className="h-4 w-4" />
+          </button>
+
+          <button
+            onClick={() => setShowMedia(true)}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            title="Upload images, videos or PDFs and add them to the email"
+          >
+            <ImagePlus className="h-4 w-4" /> Add media
           </button>
 
           <div className="h-6 w-px bg-gray-300" />
@@ -388,6 +387,22 @@ export default function TemplateEditorPage() {
 
       {/* Floating help button */}
       {!loading && <EditorHelpButton onRestartTour={handleRestartTour} />}
+
+      {/* Picker for image components (double-click an image, image blocks, background images) */}
+      <MediaLibraryModal
+        isOpen={!!assetPicker}
+        kinds={['image']}
+        title="Choose an image"
+        onClose={() => editorRef.current?.AssetManager.close()}
+        onSelect={(asset) => assetPicker?.select(asset.url, true)}
+      />
+
+      <MediaLibraryModal
+        isOpen={showMedia}
+        title="Add media to your email"
+        onClose={() => setShowMedia(false)}
+        onSelect={handleInsertMedia}
+      />
 
       {/* Save celebration */}
       <SaveCelebration show={showCelebration} onDone={() => setShowCelebration(false)} />

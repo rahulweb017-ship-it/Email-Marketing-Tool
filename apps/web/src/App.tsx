@@ -37,6 +37,13 @@ import WhatsAppCampaignsPage from './pages/whatsapp/WhatsAppCampaignsPage';
 import WhatsAppCampaignDetailPage from './pages/whatsapp/WhatsAppCampaignDetailPage';
 import WhatsAppTemplatesPage from './pages/whatsapp/WhatsAppTemplatesPage';
 import WhatsAppAIPage from './pages/whatsapp/WhatsAppAIPage';
+import EnquiriesPage from './pages/super-admin/EnquiriesPage';
+import HomePage from './pages/site/HomePage';
+import AboutPage from './pages/site/AboutPage';
+import FeaturesPage from './pages/site/FeaturesPage';
+import FeatureDetailPage from './pages/site/FeatureDetailPage';
+import ContactPage from './pages/site/ContactPage';
+import EnquiryPage from './pages/site/EnquiryPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuthStore();
@@ -61,6 +68,17 @@ function LoginRedirect() {
   return <Navigate to="/" replace />;
 }
 
+/** Visitors see the public website at "/"; signed-in users keep their dashboard there. */
+function HomeRoute() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  if (!isAuthenticated) return <HomePage />;
+  return (
+    <ProtectedRoute>
+      <Layout><DashboardPage /></Layout>
+    </ProtectedRoute>
+  );
+}
+
 function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -78,8 +96,14 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/" element={<HomeRoute />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/features" element={<FeaturesPage />} />
+      <Route path="/features/:slug" element={<FeatureDetailPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/register" element={<EnquiryPage />} />
+      <Route path="/signup" element={<RegisterPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
       <Route path="/confirm/:token" element={<ConfirmSubscriptionPage />} />
       <Route path="/preferences/:token" element={<PreferenceCenterPage />} />
       <Route path="/login-redirect" element={<LoginRedirect />} />
@@ -111,6 +135,11 @@ export default function App() {
       <Route path="/super-admin/plans" element={
         <SuperAdminRoute>
           <SuperAdminLayout><PlansManagementPage /></SuperAdminLayout>
+        </SuperAdminRoute>
+      } />
+      <Route path="/super-admin/enquiries" element={
+        <SuperAdminRoute>
+          <SuperAdminLayout><EnquiriesPage /></SuperAdminLayout>
         </SuperAdminRoute>
       } />
       <Route path="/super-admin/audit-logs" element={

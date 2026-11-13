@@ -12,6 +12,7 @@ coverage/
 *.zip
 *.xlsx
 apps/web/nul
+apps/api/uploads/
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 .claude/

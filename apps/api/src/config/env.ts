@@ -30,6 +30,10 @@ export const env = {
 
   // URLs
   APP_URL: process.env.APP_URL || 'http://localhost:3001',
+
+  // Uploaded email media (served publicly at APP_URL/media/...)
+  MEDIA_DIR: process.env.MEDIA_DIR || resolve(__dirname, '../../uploads'),
+  MEDIA_MAX_MB: parseInt(process.env.MEDIA_MAX_MB || '10', 10),
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
 
   // Super Admin

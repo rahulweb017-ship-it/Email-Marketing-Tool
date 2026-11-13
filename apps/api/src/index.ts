@@ -31,10 +31,20 @@ import { formRouter, publicFormRouter } from './modules/forms/forms.controller.j
 import { socialRouter } from './modules/social/social.controller.js';
 import { whatsappRouter } from './modules/whatsapp/whatsapp.controller.js';
 import { whatsappWebhookRouter } from './modules/whatsapp/whatsapp.webhook.js';
+import { mediaRouter } from './modules/media/media.controller.js';
+import { publicEnquiryRouter, enquiryAdminRouter } from './modules/enquiries/enquiry.controller.js';
 import { confirmSubscription } from './modules/lists/list.service.js';
 import { AppError } from './shared/middleware/error-handler.js';
 
 const app = express();
+
+// Uploaded media must load in email clients and the editor on other origins, so it is
+// served before helmet (whose default Cross-Origin-Resource-Policy would block it).
+app.use('/media', (_req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+}, express.static(env.MEDIA_DIR, { maxAge: '30d', index: false, dotfiles: 'deny', fallthrough: false }));
 
 // Global middleware
 app.use(helmet());
@@ -70,14 +80,17 @@ app.use('/api/v1/outgoing-webhooks', outgoingWebhookRouter);
 app.use('/api/v1/search', globalSearchRouter);
 app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/audit-logs', auditRouter);
+app.use('/api/v1/super-admin/enquiries', enquiryAdminRouter);
 app.use('/api/v1/super-admin', superAdminRouter);
 app.use('/api/v1/custom-fields', customFieldRouter);
 app.use('/api/v1/transactional', transactionalRouter);
 app.use('/api/v1/consent', consentRouter);
 app.use('/api/v1/forms', formRouter);
 app.use('/api/v1/public/forms', publicFormRouter);
+app.use('/api/v1/public/enquiries', publicEnquiryRouter);
 app.use('/api/v1/social', socialRouter);
 app.use('/api/v1/whatsapp', whatsappRouter);
+app.use('/api/v1/media', mediaRouter);
 
 // Public confirm endpoint (accessible via /api/v1 for frontend)
 app.get('/api/v1/confirm/:token', async (req, res) => {
