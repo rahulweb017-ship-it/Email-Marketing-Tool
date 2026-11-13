@@ -140,7 +140,7 @@ async function executeTrace(trace: Record<string, unknown>, now: Date) {
 async function executeEmailActivity(trace: Record<string, unknown>) {
   const contactId = trace.contact_id as string;
   const contact = await db('contacts').where('id', contactId).first();
-  if (!contact) return;
+  if (!contact || !contact.email) return;
 
   // Get email template
   const templateId = trace.email_template_id as string;

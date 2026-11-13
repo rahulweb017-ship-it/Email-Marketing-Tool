@@ -214,7 +214,7 @@ trackingRouter.post('/unsubscribe/:campaignId', async (req: Request, res: Respon
         stat_unsubscribed: db.raw('stat_unsubscribed + 1'),
       });
 
-      if (blacklist === 'true') {
+      if (blacklist === 'true' && contact.email_normalized) {
         const existing = await trx('email_blacklist')
           .where({ org_id: contact.org_id, email_normalized: contact.email_normalized })
           .first();

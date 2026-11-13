@@ -203,7 +203,7 @@ export const replyToConversation = (id: string, body: { body?: string; template_
   api.post<WaMessage>(`/whatsapp/conversations/${id}/reply`, body).then((r) => r.data);
 export const updateConversation = (id: string, body: { status?: string; ai_paused?: boolean }) =>
   api.patch<WaConversation>(`/whatsapp/conversations/${id}`, body).then((r) => r.data);
-export const saveConversationContact = (id: string, body: { email: string; first_name?: string; last_name?: string; whatsapp_consent?: boolean }) =>
+export const saveConversationContact = (id: string, body: { email?: string; first_name?: string; last_name?: string; whatsapp_consent?: boolean }) =>
   api.post<WaConversation>(`/whatsapp/conversations/${id}/save-contact`, body).then((r) => r.data);
 export const suggestReplies = (id: string) => api.post<{ suggestions: string[] }>(`/whatsapp/conversations/${id}/suggest`).then((r) => r.data.suggestions);
 export const getContactWaActivity = (contactId: string) =>

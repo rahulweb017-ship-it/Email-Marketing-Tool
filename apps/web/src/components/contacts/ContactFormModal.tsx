@@ -13,7 +13,7 @@ interface ContactFormModalProps {
   onSaved: () => void;
   contact?: {
     id: string;
-    email: string;
+    email: string | null;
     first_name: string | null;
     last_name: string | null;
     company_name: string | null;
@@ -124,14 +124,20 @@ export default function ContactFormModal({ isOpen, onClose, onSaved, contact }: 
   };
 
   const handleSubmit = async () => {
-    if (!form.email) {
-      setErrors({ email: 'Email is required' });
+    if (!form.email.trim() && !form.phone.trim()) {
+      setErrors({ email: 'Add an email or a phone number', phone: 'Add a phone number or an email' });
       return;
     }
     setLoading(true);
     try {
       const payload: Record<string, unknown> = { ...form };
-      Object.keys(payload).forEach((k) => { if (!payload[k]) delete payload[k]; });
+      // On edit, send cleared email/phone as null so they are actually removed
+      Object.keys(payload).forEach((k) => {
+        if (!payload[k]) {
+          if (contact && (k === 'email' || k === 'phone') && contact[k]) payload[k] = null;
+          else delete payload[k];
+        }
+      });
       if (selectedLists.length > 0 && !contact) payload.list_ids = selectedLists;
       // Include custom field values if any are set
       const cfvWithValues = Object.fromEntries(
@@ -190,14 +196,15 @@ export default function ContactFormModal({ isOpen, onClose, onSaved, contact }: 
       }
     >
       <div className="space-y-4">
-        <TextInput label="Email" name="email" value={form.email} onChange={setField('email')} required error={errors.email} placeholder="john@example.com" type="email" />
+        <TextInput label="Email" name="email" value={form.email} onChange={setField('email')} error={errors.email} placeholder="john@example.com" type="email" />
+        <p className="-mt-2 text-xs text-gray-500 dark:text-gray-400">Email or phone is enough. Use email for email campaigns and phone for WhatsApp.</p>
         <div className="grid grid-cols-2 gap-4">
           <TextInput label="First Name" name="first_name" value={form.first_name} onChange={setField('first_name')} placeholder="John" />
           <TextInput label="Last Name" name="last_name" value={form.last_name} onChange={setField('last_name')} placeholder="Doe" />
         </div>
         <TextInput label="Company" name="company_name" value={form.company_name} onChange={setField('company_name')} placeholder="Acme Inc." />
         <div className="grid grid-cols-2 gap-4">
-          <TextInput label="Phone" name="phone" value={form.phone} onChange={setField('phone')} placeholder="+1 234 567 890" />
+          <TextInput label="Phone" name="phone" value={form.phone} onChange={setField('phone')} error={errors.phone} placeholder="+91 98765 43210" />
           <SelectInput label="Country" name="country_code" value={form.country_code} onChange={setField('country_code')} options={COUNTRIES} />
         </div>
         <div>

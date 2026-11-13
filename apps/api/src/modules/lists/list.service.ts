@@ -59,7 +59,7 @@ export async function addSubscribers(orgId: string, listId: string, contactIds: 
 
   // Verify contacts belong to org
   const contacts = await db('contacts').whereIn('id', contactIds).where('org_id', orgId).select('id', 'email', 'first_name');
-  const contactMap = new Map(contacts.map((c: { id: string; email: string; first_name: string | null }) => [c.id, c]));
+  const contactMap = new Map(contacts.map((c: { id: string; email: string | null; first_name: string | null }) => [c.id, c]));
 
   let added = 0;
   for (const contactId of contactIds) {
@@ -67,36 +67,38 @@ export async function addSubscribers(orgId: string, listId: string, contactIds: 
     if (!contact) continue;
 
     const existing = await db('subscriptions').where({ contact_id: contactId, list_id: listId }).first();
+    // Phone-only contacts can't confirm by email, so they join double opt-in lists directly
+    const needsConfirm = !!list.is_double_optin && !!contact.email;
     if (existing) {
       if (existing.opt_out) {
         await db('subscriptions').where('id', existing.id).update({
           opt_out: false,
           opt_out_at: null,
-          status: list.is_double_optin ? 'pending' : 'active',
-          confirmation_token: list.is_double_optin ? crypto.randomBytes(32).toString('hex') : null,
-          confirmed_at: list.is_double_optin ? null : new Date(),
+          status: needsConfirm ? 'pending' : 'active',
+          confirmation_token: needsConfirm ? crypto.randomBytes(32).toString('hex') : null,
+          confirmed_at: needsConfirm ? null : new Date(),
         });
-        if (list.is_double_optin) {
+        if (needsConfirm) {
           const updatedSub = await db('subscriptions').where({ contact_id: contactId, list_id: listId }).first();
-          await sendConfirmationEmail(orgId, contact.email, contact.first_name, list.name, updatedSub.confirmation_token);
+          await sendConfirmationEmail(orgId, contact.email!, contact.first_name, list.name, updatedSub.confirmation_token);
         }
         added++;
       }
       continue;
     }
 
-    const token = list.is_double_optin ? crypto.randomBytes(32).toString('hex') : null;
+    const token = needsConfirm ? crypto.randomBytes(32).toString('hex') : null;
     await db('subscriptions').insert({
       id: uuidv4(),
       contact_id: contactId,
       list_id: listId,
-      status: list.is_double_optin ? 'pending' : 'active',
+      status: needsConfirm ? 'pending' : 'active',
       confirmation_token: token,
-      confirmed_at: list.is_double_optin ? null : new Date(),
+      confirmed_at: needsConfirm ? null : new Date(),
     });
 
-    if (list.is_double_optin && token) {
-      await sendConfirmationEmail(orgId, contact.email, contact.first_name, list.name, token);
+    if (needsConfirm && token) {
+      await sendConfirmationEmail(orgId, contact.email!, contact.first_name, list.name, token);
     }
 
     added++;

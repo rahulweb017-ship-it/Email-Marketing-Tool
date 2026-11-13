@@ -69,7 +69,7 @@ export const updateConversationSchema = z.object({
 });
 
 export const saveContactSchema = z.object({
-  email: z.string().email(),
+  email: z.preprocess((v) => (typeof v === 'string' && !v.trim() ? undefined : v), z.string().email().optional()),
   first_name: z.string().max(255).optional(),
   last_name: z.string().max(255).optional(),
   list_ids: z.array(z.string().uuid()).optional(),

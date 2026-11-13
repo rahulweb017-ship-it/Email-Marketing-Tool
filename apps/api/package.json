@@ -17,7 +17,8 @@
     "worker:dev": "tsx watch src/worker.ts",
     "wa": "tsx src/whatsapp-gateway.ts",
     "wa:dev": "tsx watch src/whatsapp-gateway.ts",
-    "wa:start": "node dist/whatsapp-gateway.js"
+    "wa:start": "node dist/whatsapp-gateway.js",
+    "wa:fix-contacts": "tsx src/scripts/fix-whatsapp-contacts.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.130.0",

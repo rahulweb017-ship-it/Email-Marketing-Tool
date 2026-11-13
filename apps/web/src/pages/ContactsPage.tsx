@@ -19,11 +19,12 @@ import { validateContact, bulkValidateContacts } from '../api/email-validation';
 
 interface Contact {
   id: string;
-  email: string;
+  email: string | null;
   first_name: string | null;
   last_name: string | null;
   company_name: string | null;
   phone: string | null;
+  phone_e164?: string | null;
   country_code: string | null;
   is_blacklisted: boolean;
   validation_status: 'unknown' | 'valid' | 'invalid' | 'risky' | 'disposable';
@@ -337,7 +338,7 @@ export default function ContactsPage() {
                         onClick={() => navigate(`/contacts/${c.id}`)}
                         className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline"
                       >
-                        {c.email}
+                        {c.email || c.phone_e164 || c.phone || '(no email)'}
                       </button>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
@@ -419,7 +420,7 @@ export default function ContactsPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Delete Contact"
-        message={`Are you sure you want to delete ${deleteTarget?.email}? This action cannot be undone.`}
+        message={`Are you sure you want to delete ${deleteTarget?.email || deleteTarget?.phone_e164 || deleteTarget?.phone || 'this contact'}? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="danger"
         loading={deleting}

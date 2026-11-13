@@ -193,12 +193,15 @@ export async function updateConversation(orgId: string, conversationId: string, 
 }
 
 export async function saveConversationContact(orgId: string, conversationId: string, input: {
-  email: string; first_name?: string; last_name?: string; list_ids?: string[]; whatsapp_consent?: boolean;
+  email?: string; first_name?: string; last_name?: string; list_ids?: string[]; whatsapp_consent?: boolean;
 }) {
   const conversation = await getConversation(orgId, conversationId);
   if (conversation.contact_id) throw new AppError(409, 'This conversation is already linked to a contact');
-  const emailNormalized = input.email.trim().toLowerCase();
-  let contact = await db('contacts').where({ org_id: orgId, email_normalized: emailNormalized }).first();
+  const email = input.email?.trim() || null;
+  const emailNormalized = email ? email.toLowerCase() : null;
+  let contact = emailNormalized
+    ? await db('contacts').where({ org_id: orgId, email_normalized: emailNormalized }).first()
+    : await db('contacts').where({ org_id: orgId, phone_e164: conversation.phone_e164 }).first();
   if (contact) {
     await db('contacts').where('id', contact.id).update({ phone: conversation.phone_e164, phone_e164: conversation.phone_e164, updated_at: new Date() });
   } else {
@@ -206,7 +209,7 @@ export async function saveConversationContact(orgId: string, conversationId: str
     const [first, ...rest] = (conversation.profile_name || '').split(' ');
     [contact] = await db('contacts').insert({
       org_id: orgId,
-      email: input.email.trim(),
+      email,
       email_normalized: emailNormalized,
       first_name: input.first_name ?? (first || null),
       last_name: input.last_name ?? (rest.join(' ') || null),

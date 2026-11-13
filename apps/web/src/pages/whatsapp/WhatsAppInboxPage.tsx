@@ -141,7 +141,7 @@ export default function WhatsAppInboxPage() {
   const saveContact = async () => {
     if (!active) return;
     try {
-      await saveConversationContact(active.id, { email: saveForm.email, first_name: saveForm.first_name || undefined, whatsapp_consent: saveForm.consent });
+      await saveConversationContact(active.id, { email: saveForm.email || undefined, first_name: saveForm.first_name || undefined, whatsapp_consent: saveForm.consent });
       addToast('Contact saved', 'success');
       setSaveOpen(false);
       loadThread(active.id);
@@ -327,10 +327,10 @@ export default function WhatsAppInboxPage() {
       <Modal isOpen={saveOpen} onClose={() => setSaveOpen(false)} title="Save as contact"
         footer={<div className="flex justify-end gap-2">
           <button onClick={() => setSaveOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">Cancel</button>
-          <button onClick={saveContact} disabled={!saveForm.email} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg disabled:opacity-50">Save</button>
+          <button onClick={saveContact} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg disabled:opacity-50">Save</button>
         </div>}>
         <div className="space-y-4">
-          <TextInput label="Email" name="email" type="email" value={saveForm.email} onChange={(v) => setSaveForm({ ...saveForm, email: v })} required />
+          <TextInput label="Email (optional)" name="email" type="email" value={saveForm.email} onChange={(v) => setSaveForm({ ...saveForm, email: v })} />
           <TextInput label="First name" name="first_name" value={saveForm.first_name} onChange={(v) => setSaveForm({ ...saveForm, first_name: v })} />
           <CheckboxInput label="This person agreed to receive WhatsApp marketing" checked={saveForm.consent}
             onChange={(v) => setSaveForm({ ...saveForm, consent: v })} description="Only tick this if they actually opted in. Campaigns only go to consented contacts by default." />

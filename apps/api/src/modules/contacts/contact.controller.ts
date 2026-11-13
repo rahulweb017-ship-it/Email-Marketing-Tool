@@ -142,8 +142,8 @@ contactRouter.delete('/:id', async (req: Request, res: Response, next: NextFunct
 /** POST /api/v1/contacts/import */
 contactRouter.post('/import', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { contacts, list_id } = bulkImportSchema.parse(req.body);
-    const result = await contactService.bulkImport(req.user!.org_id, contacts, list_id);
+    const { contacts, list_id, default_country } = bulkImportSchema.parse(req.body);
+    const result = await contactService.bulkImport(req.user!.org_id, contacts, list_id, default_country);
     res.json(result);
   } catch (err) {
     next(err);

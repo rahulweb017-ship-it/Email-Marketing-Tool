@@ -69,6 +69,7 @@ async function processCampaign(job: Job<CampaignProcessJob>) {
       .where('subscriptions.opt_out', false)
       .where('contacts.org_id', org_id)
       .where('contacts.is_blacklisted', false)
+      .whereNotNull('contacts.email')
       .distinct('contacts.id', 'contacts.email', 'contacts.email_normalized',
         'contacts.first_name', 'contacts.last_name', 'contacts.company_name',
         'contacts.custom_fields');

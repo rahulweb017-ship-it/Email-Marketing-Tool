@@ -40,11 +40,12 @@ interface ConsentRecord {
 
 interface Contact {
   id: string;
-  email: string;
+  email: string | null;
   first_name: string | null;
   last_name: string | null;
   company_name: string | null;
   phone: string | null;
+  phone_e164?: string | null;
   country_code: string | null;
   is_blacklisted: boolean;
   validation_status: 'unknown' | 'valid' | 'invalid' | 'risky' | 'disposable';
@@ -283,8 +284,8 @@ export default function ContactProfilePage() {
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{fullName || contact.email}</h1>
-          {fullName && <p className="text-sm text-gray-500">{contact.email}</p>}
+          <h1 className="text-2xl font-bold">{fullName || contact.email || contact.phone_e164 || contact.phone}</h1>
+          {fullName && <p className="text-sm text-gray-500">{contact.email || contact.phone_e164 || contact.phone}</p>}
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={validationBadgeConfig[contact.validation_status || 'unknown']?.variant || 'neutral'}>
@@ -479,7 +480,7 @@ export default function ContactProfilePage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Mail className="h-4 w-4 text-gray-400 shrink-0" />
-                <span className="text-gray-700 break-all">{contact.email}</span>
+                <span className={`break-all ${contact.email ? 'text-gray-700' : 'text-gray-400 italic'}`}>{contact.email || 'No email (WhatsApp only)'}</span>
               </div>
               {fullName && (
                 <div className="flex items-center gap-3 text-sm">
