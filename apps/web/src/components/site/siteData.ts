@@ -33,7 +33,7 @@ export const FEATURES: Feature[] = [
     slug: 'email-campaigns',
     name: 'Email Campaigns',
     icon: Mail,
-    gradient: 'from-indigo-500 to-blue-500',
+    gradient: 'from-brand-500 to-rose-500',
     short: 'Design beautiful emails with drag and drop, then send to the right people at the right time.',
     headline: 'Emails people actually open',
     description:
@@ -55,7 +55,7 @@ export const FEATURES: Feature[] = [
     slug: 'whatsapp',
     name: 'WhatsApp Marketing',
     icon: MessageCircle,
-    gradient: 'from-emerald-500 to-teal-500',
+    gradient: 'from-orange-500 to-red-600',
     short: 'Reach customers where they reply fastest, with safe sending built in.',
     headline: 'WhatsApp campaigns, done safely',
     description:
@@ -75,7 +75,7 @@ export const FEATURES: Feature[] = [
     slug: 'ai-assistant',
     name: 'Rabbit AI',
     icon: Sparkles,
-    gradient: 'from-fuchsia-500 to-violet-500',
+    gradient: 'from-rose-500 to-pink-600',
     short: 'AI built into every channel. It writes emails, subject lines and posts, and answers customers 24/7.',
     headline: 'AI in every part of your marketing',
     description:
@@ -104,7 +104,7 @@ export const FEATURES: Feature[] = [
     slug: 'leads',
     name: 'Leads Inbox',
     icon: Inbox,
-    gradient: 'from-rose-500 to-red-500',
+    gradient: 'from-red-600 to-amber-500',
     short: 'Every enquiry from WhatsApp, email, your website, social and ads in one inbox, scored by AI.',
     headline: 'Never lose a lead again',
     description:
@@ -128,7 +128,7 @@ export const FEATURES: Feature[] = [
     slug: 'automation',
     name: 'Automation',
     icon: Workflow,
-    gradient: 'from-amber-500 to-orange-500',
+    gradient: 'from-amber-500 to-orange-600',
     short: 'Build welcome series, follow-ups and reminders once, then let them run on their own.',
     headline: 'Marketing that runs while you sleep',
     description:
@@ -148,7 +148,7 @@ export const FEATURES: Feature[] = [
     slug: 'contacts-segments',
     name: 'Contacts & Segments',
     icon: Users,
-    gradient: 'from-sky-500 to-cyan-500',
+    gradient: 'from-brand-600 to-red-800',
     short: 'Import any spreadsheet, keep contacts tidy and target exactly the right audience.',
     headline: 'Know every customer',
     description:
@@ -169,7 +169,7 @@ export const FEATURES: Feature[] = [
     slug: 'analytics',
     name: 'Analytics',
     icon: BarChart3,
-    gradient: 'from-rose-500 to-pink-500',
+    gradient: 'from-pink-500 to-rose-600',
     short: 'See opens, clicks and replies in real time and compare campaigns side by side.',
     headline: 'Every result, clearly explained',
     description:
@@ -189,7 +189,7 @@ export const FEATURES: Feature[] = [
     slug: 'social-media',
     name: 'Social Publishing',
     icon: Share2,
-    gradient: 'from-blue-500 to-indigo-500',
+    gradient: 'from-orange-600 to-brand-600',
     short: 'Plan and schedule posts for X, Facebook and LinkedIn from the same place.',
     headline: 'All your social posts, one calendar',
     description:
@@ -209,7 +209,7 @@ export const FEATURES: Feature[] = [
     slug: 'developers',
     name: 'API & Transactional',
     icon: Code2,
-    gradient: 'from-slate-500 to-zinc-500',
+    gradient: 'from-red-700 to-rose-900',
     short: 'Send order and account emails through an API, with webhooks and your own domain.',
     headline: 'Built for developers too',
     description:

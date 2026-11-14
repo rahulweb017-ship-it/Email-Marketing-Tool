@@ -6,7 +6,7 @@ import { useAuthStore } from '../stores/auth.store';
 import { useThemeStore } from '../stores/theme.store';
 import {
   LayoutDashboard, Users, ListChecks, Send, FileText,
-  Workflow, Settings, LogOut, Mail, Globe, ChevronDown,
+  Workflow, Settings, LogOut, Globe, ChevronDown,
   Sun, Moon, Monitor, Search, Filter, Zap, Share2, MessageCircle, Sparkles, Inbox,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -90,16 +90,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <aside className="w-64 bg-gray-900 text-white flex flex-col">
         <div className="p-4 border-b border-gray-800">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold">
-            <motion.div
-              initial={{ rotate: -10, scale: 0.9 }}
-              animate={{ rotate: 0, scale: 1 }}
+            <motion.img
+              src="/brand/logo-white.png"
+              alt="Rabbit Growth"
+              className="h-8 w-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-            >
-              <Mail className="h-6 w-6 text-primary-400" />
-            </motion.div>
-            <span className="bg-gradient-to-r from-white to-primary-300 bg-clip-text text-transparent">
-              Rabbit Growth
-            </span>
+            />
           </Link>
         </div>
 

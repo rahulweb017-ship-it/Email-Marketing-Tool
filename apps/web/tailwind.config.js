@@ -8,6 +8,20 @@ export default {
         display: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // Rabbit Growth logo red (#cc0000 = brand-600)
+        brand: {
+          50: '#fff2f2',
+          100: '#ffe1e1',
+          200: '#ffc7c7',
+          300: '#ffa0a0',
+          400: '#fb6262',
+          500: '#ef2b2b',
+          600: '#cc0000',
+          700: '#ad0000',
+          800: '#8f0505',
+          900: '#760a0a',
+          950: '#410000',
+        },
         primary: {
           50: '#eef2ff',
           100: '#e0e7ff',

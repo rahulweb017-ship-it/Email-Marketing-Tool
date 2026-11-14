@@ -113,7 +113,7 @@ export default function PreferenceCenterPage() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-lg mx-auto px-4 py-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Rabbit Growth</h1>
+          <h1><img src="/brand/logo.png" alt="Rabbit Growth" className="mx-auto h-9 w-auto" /></h1>
           <p className="text-sm text-gray-500 mt-1">Email Preferences Center</p>
         </div>
       </div>

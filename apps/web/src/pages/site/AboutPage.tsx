@@ -23,8 +23,8 @@ export default function AboutPage() {
       <section className="px-6 py-16">
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2">
           <Reveal>
-            <h2 className="font-display text-3xl font-bold text-white">Our story</h2>
-            <div className="mt-6 space-y-4 leading-relaxed text-slate-400">
+            <h2 className="font-display text-3xl font-bold text-slate-900">Our story</h2>
+            <div className="mt-6 space-y-4 leading-relaxed text-slate-600">
               <p>
                 We started {SITE.name} after watching small teams struggle with too many tools: one for email, another for WhatsApp, a third for social posts and spreadsheets to hold it all together.
               </p>
@@ -43,10 +43,10 @@ export default function AboutPage() {
               { icon: Users, title: 'Who we serve', text: 'Shops, service businesses, startups and agencies.' },
               { icon: Globe, title: 'Where we work', text: 'Serving businesses across India and beyond.' },
             ].map((c) => (
-              <div key={c.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <c.icon className="h-5 w-5 text-indigo-300" />
-                <h3 className="mt-3 font-semibold text-white">{c.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{c.text}</p>
+              <div key={c.title} className="rounded-2xl border border-slate-200 bg-white p-5">
+                <c.icon className="h-5 w-5 text-brand-600" />
+                <h3 className="mt-3 font-semibold text-slate-900">{c.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{c.text}</p>
               </div>
             ))}
           </Reveal>
@@ -58,12 +58,12 @@ export default function AboutPage() {
         <div className="mx-auto mt-12 grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {VALUES.map((v, i) => (
             <Reveal key={v.title} delay={i * 0.06} className="h-full">
-              <div className="h-full rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-transparent p-6">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500">
+              <div className="h-full rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-transparent p-6">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-rose-500">
                   <v.icon className="h-5 w-5 text-white" />
                 </span>
-                <h3 className="mt-5 font-semibold text-white">{v.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-400">{v.text}</p>
+                <h3 className="mt-5 font-semibold text-slate-900">{v.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{v.text}</p>
               </div>
             </Reveal>
           ))}
@@ -71,10 +71,10 @@ export default function AboutPage() {
       </section>
 
       <section className="px-6 py-16">
-        <Reveal className="mx-auto max-w-4xl rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center sm:p-12">
-          <Sparkles className="mx-auto h-8 w-8 text-fuchsia-300" />
-          <h2 className="mt-4 font-display text-2xl font-bold text-white sm:text-3xl">How we use AI</h2>
-          <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-slate-400">
+        <Reveal className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-8 text-center sm:p-12">
+          <Sparkles className="mx-auto h-8 w-8 text-rose-600" />
+          <h2 className="mt-4 font-display text-2xl font-bold text-slate-900 sm:text-3xl">How we use AI</h2>
+          <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-slate-600">
             Rabbit AI is powered by Claude from Anthropic. It writes from the brand voice and business information you give it, never invents prices or offers, follows reply limits and passes any chat it is unsure about to your team. Every plan includes a clear monthly AI credit allowance, and you can switch the WhatsApp bot off for any number at any time.
           </p>
         </Reveal>

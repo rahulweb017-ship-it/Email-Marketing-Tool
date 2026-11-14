@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '../stores/auth.store';
 import {
   LayoutDashboard, Building2, CreditCard, ClipboardList,
-  LogOut, Shield, Mail, Inbox,
+  LogOut, Shield, Inbox,
 } from 'lucide-react';
 import clsx from 'clsx';
 import ToastContainer from './ui/Toast';
@@ -27,10 +27,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       <aside className="w-64 bg-gray-900 text-white flex flex-col">
         <div className="p-4 border-b border-gray-800">
           <Link to="/super-admin" className="flex items-center gap-2 text-xl font-bold">
-            <Mail className="h-6 w-6 text-red-400" />
-            <span className="bg-gradient-to-r from-white to-red-300 bg-clip-text text-transparent">
-              Rabbit Growth
-            </span>
+            <img src="/brand/logo-white.png" alt="Rabbit Growth" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-1.5 mt-2">
             <Shield className="h-3.5 w-3.5 text-red-400" />
