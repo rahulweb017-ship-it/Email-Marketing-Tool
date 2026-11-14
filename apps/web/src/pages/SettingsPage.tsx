@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, TestTube, Trash2, Settings, Shield, ShieldCheck, FileText, Key, Webhook, Eye, Edit, ListChecks, Download } from 'lucide-react';
+import { Plus, TestTube, Trash2, Settings, Shield, ShieldCheck, FileText, Key, Webhook, Eye, Edit, ListChecks, Download, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import api from '../api/client';
 import Badge from '../components/ui/Badge';
@@ -16,12 +16,14 @@ import AuditLogPanel from '../components/settings/AuditLogPanel';
 import ApiKeysPanel from '../components/settings/ApiKeysPanel';
 import OutgoingWebhooksPanel from '../components/settings/OutgoingWebhooksPanel';
 import CustomFieldsPanel from '../components/settings/CustomFieldsPanel';
+import BrandVoicePanel from '../components/ai/BrandVoicePanel';
 import { getConsentOverview, getRecentConsentChanges, exportConsent } from '../api/consent';
 
-type SettingsTab = 'providers' | 'api-keys' | 'webhooks' | 'custom-fields' | 'consent' | 'audit';
+type SettingsTab = 'providers' | 'brand-ai' | 'api-keys' | 'webhooks' | 'custom-fields' | 'consent' | 'audit';
 
 const settingsTabs: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
   { id: 'providers', label: 'Providers', icon: Shield },
+  { id: 'brand-ai', label: 'Brand & AI', icon: Sparkles },
   { id: 'api-keys', label: 'API Keys', icon: Key },
   { id: 'webhooks', label: 'Webhooks', icon: Webhook },
   { id: 'custom-fields', label: 'Custom Fields', icon: ListChecks },
@@ -292,6 +294,8 @@ export default function SettingsPage() {
           )}
         </div>
       )}
+
+      {activeTab === 'brand-ai' && <BrandVoicePanel />}
 
       {/* API Keys Tab */}
       {activeTab === 'api-keys' && (

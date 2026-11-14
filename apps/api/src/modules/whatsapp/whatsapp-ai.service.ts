@@ -1,11 +1,11 @@
 // Claude-powered WhatsApp helpers: compose, reply suggestions, the auto-reply bot and "teach the AI".
-import Anthropic from '@anthropic-ai/sdk';
-import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import type Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod/v4';
 import { db } from '../../config/database.js';
-import { env } from '../../config/env.js';
 import { redis } from '../../config/redis.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
+import { generate } from '../ai/ai.client.js';
+import { brandBlock } from '../ai/brand.service.js';
 import { checkWhatsAppLimit } from '../usage/usage.service.js';
 import { flagNeedsHuman } from './whatsapp-inbound.service.js';
 import { queueOutbound } from './whatsapp-messages.service.js';
@@ -14,43 +14,6 @@ import { withinServiceWindow } from './whatsapp.utils.js';
 
 const MAX_AI_REPLIES_PER_HOUR = 5;
 const KNOWLEDGE_CHAR_BUDGET = 40_000;
-
-let client: Anthropic | null = null;
-function ai(): Anthropic {
-  if (!env.ANTHROPIC_API_KEY) throw new AppError(503, 'AI is not configured on this server (ANTHROPIC_API_KEY is missing)');
-  client ??= new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-  return client;
-}
-
-/** One structured call with the server-side refusal fallback enabled. */
-async function generate<T extends z.ZodType>(opts: {
-  system: Anthropic.Beta.BetaTextBlockParam[];
-  prompt: string;
-  schema: T;
-  effort: 'low' | 'medium';
-  maxTokens?: number;
-}): Promise<z.infer<T>> {
-  let response;
-  try {
-    response = await ai().beta.messages.parse({
-      model: env.WHATSAPP_AI_MODEL,
-      max_tokens: opts.maxTokens ?? 4000,
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      system: opts.system,
-      messages: [{ role: 'user', content: opts.prompt }],
-      output_config: { effort: opts.effort, format: betaZodOutputFormat(opts.schema) },
-    });
-  } catch (err) {
-    if (err instanceof Anthropic.RateLimitError) throw new AppError(429, 'The AI is busy right now. Try again in a minute.');
-    if (err instanceof Anthropic.AuthenticationError) throw new AppError(503, 'The AI key on this server is invalid');
-    if (err instanceof Anthropic.APIError) throw new AppError(502, `AI request failed: ${err.message}`);
-    throw err;
-  }
-  if (response.stop_reason === 'refusal') throw new AppError(422, 'The AI declined to write this message. Try rephrasing the request.');
-  if (response.stop_reason === 'max_tokens' || !response.parsed_output) throw new AppError(502, 'The AI returned an incomplete answer. Try again.');
-  return response.parsed_output as z.infer<T>;
-}
 
 function parseSettings(account: any): Record<string, any> {
   return typeof account.ai_settings === 'string' ? JSON.parse(account.ai_settings) : (account.ai_settings || {});
@@ -108,7 +71,8 @@ Tone: ${input.tone || 'friendly and professional'}
 Language: ${input.language || 'English'}
 Length: ${lengthHint}
 ${input.for_template ? 'This will be submitted as a Meta WhatsApp template.' : ''}`;
-  return generate({ system, prompt, schema: ComposeSchema, effort: 'medium' });
+  system.push({ type: 'text', text: await brandBlock(orgId) });
+  return generate({ charge: { orgId, feature: 'whatsapp_compose' }, system, prompt, schema: ComposeSchema, effort: 'medium' });
 }
 
 // ─── Reply generation (bot, suggestions, test chat) ───
@@ -133,7 +97,7 @@ async function systemFor(orgId: string, account: any): Promise<Anthropic.Beta.Be
     .filter(Boolean).join(' ');
   return [
     { type: 'text', text: BOT_RULES + (extra ? `\n- ${extra}` : '') },
-    { type: 'text', text: await knowledgeBlock(orgId, account), cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: `${await brandBlock(orgId)}\n\n${await knowledgeBlock(orgId, account)}`, cache_control: { type: 'ephemeral' } },
   ];
 }
 
@@ -158,6 +122,7 @@ export async function suggestReplies(orgId: string, conversationId: string) {
     prompt: `Conversation so far:\n${transcript(lines)}\n\nSuggest three different replies the business could send next. If the knowledge base doesn't cover the question, make one suggestion a polite "let me check and get back to you".`,
     schema: SuggestSchema,
     effort: 'low',
+    charge: { orgId, feature: 'whatsapp_suggest' },
   });
   return { suggestions: result.suggestions.slice(0, 3) };
 }
@@ -169,6 +134,7 @@ export async function testBot(orgId: string, accountId: string, messages: Array<
     prompt: `Conversation so far:\n${transcript(messages)}\n\nWrite the business's next reply, or hand off to a person.`,
     schema: ReplySchema,
     effort: 'low',
+    charge: { orgId, feature: 'whatsapp_test' },
   });
 }
 
@@ -199,12 +165,22 @@ export async function runAutoReply(conversationId: string, messageId: string) {
   }
 
   const lines = await recentTranscript(conversationId);
-  const result = await generate({
-    system: await systemFor(account.org_id, account),
-    prompt: `Conversation so far:\n${transcript(lines)}\n\nWrite the business's next reply, or hand off to a person.`,
-    schema: ReplySchema,
-    effort: 'low',
-  });
+  let result;
+  try {
+    result = await generate({
+      system: await systemFor(account.org_id, account),
+      prompt: `Conversation so far:\n${transcript(lines)}\n\nWrite the business's next reply, or hand off to a person.`,
+      schema: ReplySchema,
+      effort: 'low',
+      charge: { orgId: account.org_id, feature: 'whatsapp_auto_reply' },
+    });
+  } catch (err) {
+    if (err instanceof AppError && err.statusCode === 402) {
+      await flagNeedsHuman(account, conversation, 'The AI is out of monthly credits, so a person needs to reply');
+      return 'skipped:ai_credits';
+    }
+    throw err;
+  }
 
   if (result.action === 'handoff' || !result.reply.trim()) {
     await flagNeedsHuman(account, conversation, result.reason || 'The AI was not sure how to answer');

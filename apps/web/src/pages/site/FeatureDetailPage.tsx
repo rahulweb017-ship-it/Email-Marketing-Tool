@@ -1,8 +1,8 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowUpRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Check, Rocket } from 'lucide-react';
 import clsx from 'clsx';
 import SiteLayout from '../../components/site/SiteLayout';
-import { Backdrop, CtaBanner, Eyebrow, PrimaryButton, Reveal, SecondaryButton, SectionHeading, usePageTitle } from '../../components/site/ui';
+import { Backdrop, ComingSoonBadge, CtaBanner, Eyebrow, PrimaryButton, Reveal, SecondaryButton, SectionHeading, usePageTitle } from '../../components/site/ui';
 import { FEATURES } from '../../components/site/siteData';
 
 export default function FeatureDetailPage() {
@@ -63,6 +63,29 @@ export default function FeatureDetailPage() {
           ))}
         </div>
       </section>
+
+      {feature.roadmap && feature.roadmap.length > 0 && (
+        <section className="px-6 py-12">
+          <div className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-8 sm:p-10">
+            <div className="flex items-center gap-3">
+              <Rocket className="h-5 w-5 text-amber-200" />
+              <h2 className="font-display text-2xl font-bold text-white">Coming next</h2>
+            </div>
+            <p className="mt-2 text-sm text-slate-400">We are building these now. Ask us about early access when you book a demo.</p>
+            <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {feature.roadmap.map((r) => (
+                <div key={r.title} className="rounded-2xl border border-dashed border-white/15 bg-slate-950/40 p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold text-white">{r.title}</h3>
+                    <ComingSoonBadge />
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">{r.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Undo2, Redo2, CheckCircle, Circle, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Save, Undo2, Redo2, CheckCircle, Circle, ImagePlus, Sparkles } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import grapesjs, { type Editor, type Component } from 'grapesjs';
 import newsletterPreset from 'grapesjs-preset-newsletter';
@@ -16,6 +16,7 @@ import DragHint from '../components/templates/DragHint';
 import EditorHelpButton from '../components/templates/EditorHelpButton';
 import SaveCelebration from '../components/templates/SaveCelebration';
 import MediaLibraryModal from '../components/media/MediaLibraryModal';
+import AiEmailWriterModal from '../components/ai/AiEmailWriterModal';
 import type { MediaAsset } from '../api/media';
 import { emailBlocks, MEDIA_BLOCK_IDS, makeCellTextEditable, makeEditorTextEditable } from '../components/templates/editorBlocks';
 
@@ -61,6 +62,8 @@ export default function TemplateEditorPage() {
   const templateBodyRef = useRef<string>('');
   const [assetPicker, setAssetPicker] = useState<AssetPickerProps | null>(null);
   const [showMedia, setShowMedia] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const [aiSelectedText, setAiSelectedText] = useState<string | null>(null);
 
   const handleSave = useCallback(async () => {
     if (!editorRef.current || !id) return;
@@ -280,6 +283,34 @@ export default function TemplateEditorPage() {
     if (first) editor.select(first);
   };
 
+  const openAi = () => {
+    const selected = editorRef.current?.getSelected();
+    const text = selected?.get('type') === 'text' ? selected.getEl()?.innerText?.trim() : '';
+    setAiSelectedText(text || null);
+    setShowAi(true);
+  };
+
+  const handleAiInsert = async (html: string, mode: 'replace' | 'append', subject: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    if (mode === 'replace') editor.setComponents(html);
+    else editor.getWrapper()?.append(html);
+    makeEditorTextEditable(editor);
+    setShowAi(false);
+    setShowGallery(false);
+    if (id && subject) {
+      try { await api.patch(`/templates/${id}`, { subject }); } catch { /* the body is still inserted; subject is a convenience */ }
+    }
+    addToast('AI draft added. Click any text to edit it.', 'success');
+  };
+
+  const handleAiReplaceText = (text: string) => {
+    const selected = editorRef.current?.getSelected();
+    if (!selected) return;
+    selected.components(escapeAttr(text).replace(/>/g, '&gt;').replace(/\n/g, '<br>'));
+    setShowAi(false);
+  };
+
   const handleUndo = () => {
     editorRef.current?.UndoManager.undo();
   };
@@ -335,6 +366,15 @@ export default function TemplateEditorPage() {
             title="Redo (Ctrl+Y)"
           >
             <Redo2 className="h-4 w-4" />
+          </button>
+
+          <button
+            onClick={openAi}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-medium text-white hover:brightness-110 disabled:opacity-50"
+            title="Write the whole email, or rewrite the selected text, with Rabbit AI"
+          >
+            <Sparkles className="h-4 w-4" /> Write with AI
           </button>
 
           <button
@@ -402,6 +442,14 @@ export default function TemplateEditorPage() {
         title="Add media to your email"
         onClose={() => setShowMedia(false)}
         onSelect={handleInsertMedia}
+      />
+
+      <AiEmailWriterModal
+        isOpen={showAi}
+        onClose={() => setShowAi(false)}
+        selectedText={aiSelectedText}
+        onInsert={handleAiInsert}
+        onReplaceText={handleAiReplaceText}
       />
 
       {/* Save celebration */}

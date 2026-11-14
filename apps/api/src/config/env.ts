@@ -56,4 +56,6 @@ export const env = {
   // AI (Claude API) for WhatsApp compose, reply suggestions and auto-replies
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
   WHATSAPP_AI_MODEL: process.env.WHATSAPP_AI_MODEL || 'claude-opus-5-5',
+  // Model for platform-wide AI features (email, subject lines, social, WhatsApp)
+  AI_MODEL: process.env.AI_MODEL || process.env.WHATSAPP_AI_MODEL || 'claude-opus-5-5',
 } as const;

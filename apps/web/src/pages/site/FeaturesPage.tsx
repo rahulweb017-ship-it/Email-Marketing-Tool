@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, Check } from 'lucide-react';
 import clsx from 'clsx';
 import SiteLayout from '../../components/site/SiteLayout';
-import { CtaBanner, GradientText, PageHero, PrimaryButton, Reveal, SecondaryButton, usePageTitle } from '../../components/site/ui';
+import { ComingSoonBadge, CtaBanner, GradientText, PageHero, PrimaryButton, Reveal, SecondaryButton, usePageTitle } from '../../components/site/ui';
 import { FEATURES } from '../../components/site/siteData';
 
 export default function FeaturesPage() {
@@ -11,8 +11,8 @@ export default function FeaturesPage() {
     <SiteLayout>
       <PageHero
         eyebrow="Features"
-        title={<>Everything you need to <GradientText>grow</GradientText></>}
-        subtitle="Email, WhatsApp, social and automation, with an AI assistant built into every step. Pick a feature to see how it works."
+        title={<>One AI-powered platform for <GradientText>all your marketing</GradientText></>}
+        subtitle="Email, WhatsApp, social publishing, automation, contacts and analytics, with Rabbit AI built into every step. Pick a feature to see how it works."
       >
         <PrimaryButton to="/register">Book a free demo</PrimaryButton>
         <SecondaryButton to="/contact">Ask a question</SecondaryButton>
@@ -44,6 +44,13 @@ export default function FeaturesPage() {
                         <Check className="h-3.5 w-3.5 text-white" />
                       </span>
                       {h}
+                    </li>
+                  ))}
+                  {f.roadmap?.map((r) => (
+                    <li key={r.title} className="flex items-center gap-3 rounded-xl border border-dashed border-white/10 bg-slate-950/20 px-4 py-3 text-sm text-slate-400">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/15" />
+                      <span className="flex-1">{r.title}</span>
+                      <ComingSoonBadge />
                     </li>
                   ))}
                 </ul>

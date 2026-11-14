@@ -8,6 +8,7 @@ import { useToastStore } from '../stores/toast.store';
 import AccountSelector from '../components/social/AccountSelector';
 import PlatformIcon from '../components/social/PlatformIcon';
 import PostStatusBadge from '../components/social/PostStatusBadge';
+import AiSocialWriter from '../components/ai/AiSocialWriter';
 
 interface Account {
   id: string;
@@ -272,6 +273,10 @@ export default function SocialPostComposer() {
               onChange={isEditable ? setSelectedAccountIds : () => {}}
             />
           </div>
+
+          {isEditable && (
+            <AiSocialWriter platforms={uniquePlatforms} onUse={(text) => setContent(text)} />
+          )}
 
           {/* Schedule */}
           {isEditable && (

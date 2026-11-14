@@ -32,6 +32,7 @@ import { socialRouter } from './modules/social/social.controller.js';
 import { whatsappRouter } from './modules/whatsapp/whatsapp.controller.js';
 import { whatsappWebhookRouter } from './modules/whatsapp/whatsapp.webhook.js';
 import { mediaRouter } from './modules/media/media.controller.js';
+import { aiRouter } from './modules/ai/ai.controller.js';
 import { publicEnquiryRouter, enquiryAdminRouter } from './modules/enquiries/enquiry.controller.js';
 import { confirmSubscription } from './modules/lists/list.service.js';
 import { AppError } from './shared/middleware/error-handler.js';
@@ -91,6 +92,7 @@ app.use('/api/v1/public/enquiries', publicEnquiryRouter);
 app.use('/api/v1/social', socialRouter);
 app.use('/api/v1/whatsapp', whatsappRouter);
 app.use('/api/v1/media', mediaRouter);
+app.use('/api/v1/ai', aiRouter);
 
 // Public confirm endpoint (accessible via /api/v1 for frontend)
 app.get('/api/v1/confirm/:token', async (req, res) => {

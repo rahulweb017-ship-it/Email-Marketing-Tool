@@ -16,6 +16,7 @@ interface Plan {
   max_lists: number;
   max_whatsapp_messages_per_month?: number;
   max_whatsapp_accounts?: number;
+  max_ai_credits_per_month?: number;
   price_monthly: number | string;
   price_yearly: number | string;
   features: Record<string, boolean>;
@@ -36,6 +37,7 @@ const emptyForm = {
   max_lists: 5,
   max_whatsapp_messages_per_month: 0,
   max_whatsapp_accounts: 0,
+  max_ai_credits_per_month: 0,
   features: {} as Record<string, boolean>,
   price_monthly: 0,
   price_yearly: 0,
@@ -73,6 +75,7 @@ export default function PlansManagementPage() {
       max_lists: Number(plan.max_lists) || 1,
       max_whatsapp_messages_per_month: Number(plan.max_whatsapp_messages_per_month) || 0,
       max_whatsapp_accounts: Number(plan.max_whatsapp_accounts) || 0,
+      max_ai_credits_per_month: Number(plan.max_ai_credits_per_month) || 0,
       features: (plan as any).features && typeof (plan as any).features === 'object' ? (plan as any).features : {},
       price_monthly: parseFloat(String(plan.price_monthly)) || 0,
       price_yearly: parseFloat(String(plan.price_yearly)) || 0,
@@ -96,6 +99,7 @@ export default function PlansManagementPage() {
       max_lists: Number(form.max_lists) || 1,
       max_whatsapp_messages_per_month: Number(form.max_whatsapp_messages_per_month) || 0,
       max_whatsapp_accounts: Number(form.max_whatsapp_accounts) || 0,
+      max_ai_credits_per_month: Number(form.max_ai_credits_per_month) || 0,
       price_monthly: parseFloat(String(form.price_monthly)) || 0,
       price_yearly: parseFloat(String(form.price_yearly)) || 0,
       sort_order: Number(form.sort_order) || 0,
@@ -167,6 +171,7 @@ export default function PlansManagementPage() {
               <div>{plan.max_campaigns == null ? 'Unlimited' : plan.max_campaigns} campaigns</div>
               <div>{plan.max_automations == null ? 'Unlimited' : plan.max_automations} automations</div>
               <div>{plan.features?.whatsapp ? `WhatsApp: ${plan.max_whatsapp_accounts ?? 0} numbers, ${(plan.max_whatsapp_messages_per_month ?? 0).toLocaleString()} msgs/month${plan.features?.whatsapp_ai ? ' + AI' : ''}` : 'No WhatsApp'}</div>
+              <div>AI: {(plan.max_ai_credits_per_month ?? 0).toLocaleString()} credits/month</div>
             </div>
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-400">
               {plan.org_count} organization{plan.org_count !== 1 ? 's' : ''}
@@ -206,6 +211,7 @@ export default function PlansManagementPage() {
               <div className="grid grid-cols-2 gap-3">
                 <NumberField label="WhatsApp Numbers" value={form.max_whatsapp_accounts} onChange={(v) => setForm({ ...form, max_whatsapp_accounts: v })} />
                 <NumberField label="WhatsApp Msgs/Month" value={form.max_whatsapp_messages_per_month} onChange={(v) => setForm({ ...form, max_whatsapp_messages_per_month: v })} />
+                <NumberField label="AI Credits/Month (0 = no AI)" value={form.max_ai_credits_per_month} onChange={(v) => setForm({ ...form, max_ai_credits_per_month: v })} />
               </div>
               <div className="flex gap-4 text-sm text-gray-700 dark:text-gray-300">
                 {(['whatsapp', 'whatsapp_ai'] as const).map((f) => (

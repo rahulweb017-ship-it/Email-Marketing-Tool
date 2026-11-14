@@ -9,6 +9,7 @@ import RichTextEditor from '../ui/RichTextEditor';
 import SpamScoreChecker from './SpamScoreChecker';
 import clsx from 'clsx';
 import api from '../../api/client';
+import SubjectLineSuggester from '../ai/SubjectLineSuggester';
 
 interface CampaignWizardProps {
   isOpen: boolean;
@@ -380,6 +381,11 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
               <div className="space-y-4">
                 <TextInput label="Campaign Name" name="name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="e.g. March Newsletter" />
                 <TextInput label="Subject Line" name="subject" value={form.subject} onChange={(v) => setForm({ ...form, subject: v })} required placeholder="e.g. Your weekly update" />
+                <SubjectLineSuggester
+                  currentSubject={form.subject}
+                  contentHtml={form.body_html}
+                  onPick={(s) => setForm((f) => ({ ...f, subject: s.subject, preview_text: f.preview_text || s.preview_text }))}
+                />
                 <TextInput label="Preview Text" name="preview_text" value={form.preview_text} onChange={(v) => setForm({ ...form, preview_text: v })} placeholder="Text shown after subject in inbox" />
 
                 {/* Email Provider Selector */}

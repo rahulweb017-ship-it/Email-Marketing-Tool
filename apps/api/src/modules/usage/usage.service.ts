@@ -12,6 +12,7 @@ interface OrgLimits {
   max_lists: number;
   max_whatsapp_messages_per_month: number;
   max_whatsapp_accounts: number;
+  max_ai_credits_per_month: number;
   features: Record<string, boolean>;
 }
 
@@ -40,6 +41,7 @@ export async function getOrgLimits(orgId: string): Promise<OrgLimits> {
       'plans.max_lists',
       'plans.max_whatsapp_messages_per_month',
       'plans.max_whatsapp_accounts',
+      'plans.max_ai_credits_per_month',
       'plans.features',
       'organizations.limits_override',
     )
@@ -62,6 +64,7 @@ export async function getOrgLimits(orgId: string): Promise<OrgLimits> {
     max_lists: overrides.max_lists ?? org.max_lists ?? 5,
     max_whatsapp_messages_per_month: overrides.max_whatsapp_messages_per_month ?? org.max_whatsapp_messages_per_month ?? 0,
     max_whatsapp_accounts: overrides.max_whatsapp_accounts ?? org.max_whatsapp_accounts ?? 0,
+    max_ai_credits_per_month: overrides.max_ai_credits_per_month ?? org.max_ai_credits_per_month ?? 0,
     features: { ...planFeatures, ...(overrides.features || {}) },
   };
 

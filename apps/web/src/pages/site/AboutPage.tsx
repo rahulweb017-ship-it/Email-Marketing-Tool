@@ -16,8 +16,8 @@ export default function AboutPage() {
     <SiteLayout>
       <PageHero
         eyebrow="About us"
-        title={<>Smarter marketing for <GradientText>every business</GradientText></>}
-        subtitle={`${SITE.name} helps growing businesses reach customers on email, WhatsApp and social media, with AI doing the heavy lifting.`}
+        title={<>AI-powered marketing for <GradientText>every business</GradientText></>}
+        subtitle={`${SITE.name} is an all-in-one marketing platform. Email, WhatsApp, social, automation and analytics work together, with AI doing the heavy lifting.`}
       />
 
       <section className="px-6 py-16">
@@ -29,7 +29,7 @@ export default function AboutPage() {
                 We started {SITE.name} after watching small teams struggle with too many tools: one for email, another for WhatsApp, a third for social posts and spreadsheets to hold it all together.
               </p>
               <p>
-                So we built one place for all of it. Contacts, campaigns, chats and results live together, and an AI assistant writes messages and answers customers so your team can focus on the conversations that matter.
+                So we built one place for all of it. Contacts, campaigns, chats, posts and results live together. Rabbit AI, our built-in AI, writes emails and posts in your brand voice and answers customers, so your team can focus on the conversations that matter.
               </p>
               <p>
                 Today we help shops, service businesses and agencies send better campaigns, reply faster and grow their customer base without needing a marketing department.
@@ -39,7 +39,7 @@ export default function AboutPage() {
           <Reveal delay={0.1} className="grid grid-cols-2 gap-4">
             {[
               { icon: Target, title: 'Our mission', text: 'Give every business the marketing power of a big company.' },
-              { icon: Rocket, title: 'Our approach', text: 'Simple tools, smart AI and real people when you need help.' },
+              { icon: Rocket, title: 'Our approach', text: 'One platform, AI in every step and real people when you need help.' },
               { icon: Users, title: 'Who we serve', text: 'Shops, service businesses, startups and agencies.' },
               { icon: Globe, title: 'Where we work', text: 'Serving businesses across India and beyond.' },
             ].map((c) => (
@@ -75,7 +75,7 @@ export default function AboutPage() {
           <Sparkles className="mx-auto h-8 w-8 text-fuchsia-300" />
           <h2 className="mt-4 font-display text-2xl font-bold text-white sm:text-3xl">How we use AI</h2>
           <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-slate-400">
-            Our assistant is powered by Claude from Anthropic. It only uses the business information you give it, follows reply limits, and passes any chat it is unsure about to your team. You can switch it off for any number at any time.
+            Rabbit AI is powered by Claude from Anthropic. It writes from the brand voice and business information you give it, never invents prices or offers, follows reply limits and passes any chat it is unsure about to your team. Every plan includes a clear monthly AI credit allowance, and you can switch the WhatsApp bot off for any number at any time.
           </p>
         </Reveal>
       </section>

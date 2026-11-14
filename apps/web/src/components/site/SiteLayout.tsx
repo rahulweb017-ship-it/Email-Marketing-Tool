@@ -171,7 +171,7 @@ function Footer() {
         <div className="lg:col-span-2">
           <Logo />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
-            Email, WhatsApp and social marketing in one place, with an AI assistant that helps you write, reply and grow.
+            The AI-powered all-in-one marketing platform. Email, WhatsApp, social, automation and analytics in one place, with Rabbit AI helping you write, reply and grow.
           </p>
           <div className="mt-6 space-y-2 text-sm text-slate-400">
             <a href={`mailto:${SITE.email}`} className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4" /> {SITE.email}</a>

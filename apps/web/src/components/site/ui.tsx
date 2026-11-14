@@ -44,6 +44,14 @@ export function Eyebrow({ children }: { children: ReactNode }) {
   );
 }
 
+export function ComingSoonBadge({ className }: { className?: string }) {
+  return (
+    <span className={clsx('inline-flex shrink-0 items-center rounded-full border border-amber-300/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200', className)}>
+      Coming soon
+    </span>
+  );
+}
+
 export function SectionHeading({ eyebrow, title, subtitle, center = true }: {
   eyebrow?: string; title: ReactNode; subtitle?: ReactNode; center?: boolean;
 }) {

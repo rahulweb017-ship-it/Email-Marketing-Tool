@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Sparkles, Bot, CheckCheck, Upload, Palette, Workflow, TrendingUp, ShieldCheck, Gauge, Lock, HeartHandshake,
-  ChevronDown, Mail, MessageCircle, Share2, ArrowUpRight, BookOpen, UserCheck, Zap,
+  ChevronDown, Mail, MessageCircle, Share2, ArrowUpRight, BookOpen, UserCheck, Zap, PenLine, BarChart3, Layers,
 } from 'lucide-react';
 import clsx from 'clsx';
 import SiteLayout from '../../components/site/SiteLayout';
 import {
-  Backdrop, CtaBanner, Eyebrow, GradientText, PrimaryButton, Reveal, SecondaryButton, SectionHeading, usePageTitle,
+  Backdrop, ComingSoonBadge, CtaBanner, Eyebrow, GradientText, PrimaryButton, Reveal, SecondaryButton, SectionHeading, usePageTitle,
 } from '../../components/site/ui';
-import { FEATURES } from '../../components/site/siteData';
+import { AI_ROADMAP, FEATURES } from '../../components/site/siteData';
 
 const CHATS = [
   {
@@ -136,12 +136,12 @@ function Hero() {
       <Backdrop />
       <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-[1.05fr_1fr]">
         <Reveal>
-          <Eyebrow>New: AI auto-replies for WhatsApp</Eyebrow>
+          <Eyebrow>New: AI email writer and brand voice</Eyebrow>
           <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Grow faster with <GradientText className="whitespace-nowrap">AI-powered</GradientText> email and WhatsApp marketing
+            The <GradientText className="whitespace-nowrap">AI-powered</GradientText> all-in-one marketing platform
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
-            Design campaigns, automate follow-ups and let an AI assistant answer customers around the clock. Email, WhatsApp and social, all from one simple dashboard.
+            Email, WhatsApp, social publishing, automation, contacts and analytics in one place. Rabbit AI writes your campaigns, replies to customers around the clock and helps you grow, all from one simple dashboard.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <PrimaryButton to="/register">Book a free demo</PrimaryButton>
@@ -149,10 +149,11 @@ function Hero() {
           </div>
           <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-400">
             {[
-              [Mail, 'Email campaigns'],
+              [Mail, 'Email'],
               [MessageCircle, 'WhatsApp'],
-              [Sparkles, 'AI assistant'],
-              [Share2, 'Social posts'],
+              [Share2, 'Social'],
+              [Workflow, 'Automation'],
+              [Sparkles, 'Rabbit AI'],
             ].map(([Icon, label]) => {
               const I = Icon as typeof Mail;
               return <span key={label as string} className="flex items-center gap-2"><I className="h-4 w-4 text-indigo-300" /> {label as string}</span>;
@@ -176,11 +177,13 @@ function Channels() {
     { icon: Mail, label: 'Email', text: 'Drag-and-drop campaigns, templates and A/B tests', tone: 'text-indigo-300' },
     { icon: MessageCircle, label: 'WhatsApp', text: 'Official API or QR-linked numbers, with a shared inbox', tone: 'text-emerald-300' },
     { icon: Share2, label: 'Social', text: 'Schedule posts for X, Facebook and LinkedIn', tone: 'text-sky-300' },
-    { icon: Sparkles, label: 'AI', text: 'Writes, suggests and replies in your brand voice', tone: 'text-fuchsia-300' },
+    { icon: Workflow, label: 'Automation', text: 'Visual journeys that follow up on their own', tone: 'text-amber-300' },
+    { icon: BarChart3, label: 'Analytics', text: 'Opens, clicks and replies across every channel', tone: 'text-rose-300' },
+    { icon: Sparkles, label: 'Rabbit AI', text: 'Writes, suggests and replies in your brand voice', tone: 'text-fuchsia-300' },
   ];
   return (
     <section className="relative border-y border-white/5 bg-white/[0.02]">
-      <div className="mx-auto grid max-w-7xl gap-px px-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-px px-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((it, i) => (
           <Reveal key={it.label} delay={i * 0.05} className="flex items-start gap-4 px-2 py-8 lg:px-6">
             <it.icon className={clsx('mt-0.5 h-6 w-6 shrink-0', it.tone)} />
@@ -199,9 +202,9 @@ function FeatureGrid() {
   return (
     <section className="relative px-6 py-24 sm:py-28">
       <SectionHeading
-        eyebrow="Everything in one place"
-        title={<>One platform. <GradientText>Every channel.</GradientText></>}
-        subtitle="Stop juggling five different tools. Rabbit Growth brings your contacts, campaigns, chats and results together."
+        eyebrow="All-in-one"
+        title={<>One platform. <GradientText>Every channel. AI everywhere.</GradientText></>}
+        subtitle="Stop paying for five different tools. Rabbit Growth brings your contacts, campaigns, chats, posts and results together, with AI built into each one."
       />
       <div className="mx-auto mt-14 grid max-w-7xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((f, i) => (
@@ -228,7 +231,7 @@ function FeatureGrid() {
 }
 
 function AiOrb() {
-  const orbit = [Mail, MessageCircle, BookOpen, Share2, UserCheck, Zap];
+  const orbit = [Mail, MessageCircle, PenLine, Share2, UserCheck, Zap];
   return (
     <div className="relative mx-auto aspect-square w-full max-w-md">
       <div aria-hidden className="absolute inset-[18%] rounded-full bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-cyan-400 opacity-60 blur-3xl" />
@@ -262,8 +265,10 @@ function AiOrb() {
 
 function AiSection() {
   const points = [
-    { icon: Sparkles, title: 'Writes for you', text: 'Describe your offer and get a ready-to-send message in your brand voice.' },
-    { icon: Bot, title: 'Replies 24/7', text: 'Answers common questions instantly, even at night and on holidays.' },
+    { icon: PenLine, title: 'Writes your emails', text: 'Turn a one-line brief into a complete email, plus subject lines with scores.' },
+    { icon: Share2, title: 'Writes your posts', text: 'One idea becomes a post for X, Facebook and LinkedIn, sized for each.' },
+    { icon: Bot, title: 'Replies 24/7', text: 'Answers WhatsApp questions instantly, even at night and on holidays.' },
+    { icon: Layers, title: 'One brand voice', text: 'Describe your business once. Every AI feature writes like your brand.' },
     { icon: BookOpen, title: 'Learns your business', text: 'Add your products, prices and policies. The AI answers from your facts.' },
     { icon: UserCheck, title: 'Knows when to hand over', text: 'Tricky or sensitive chats go to your team, with the full history.' },
   ];
@@ -276,8 +281,8 @@ function AiSection() {
           <SectionHeading
             center={false}
             eyebrow="AI at the core"
-            title={<>Meet your <GradientText>AI marketing teammate</GradientText></>}
-            subtitle="Powered by Claude, the assistant handles the busy work so your team can focus on customers who need a personal touch."
+            title={<>Meet <GradientText>Rabbit AI</GradientText>, your AI marketing team</>}
+            subtitle="Powered by Claude, Rabbit AI works across email, WhatsApp and social. It handles the busy work so your team can focus on customers who need a personal touch."
           />
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {points.map((p, i) => (
@@ -290,7 +295,7 @@ function AiSection() {
           </div>
           <Reveal delay={0.2} className="mt-8">
             <Link to="/features/ai-assistant" className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-300 hover:text-indigo-200">
-              See what the AI can do <ArrowUpRight className="h-4 w-4" />
+              See what Rabbit AI can do <ArrowUpRight className="h-4 w-4" />
             </Link>
           </Reveal>
         </div>
@@ -299,11 +304,36 @@ function AiSection() {
   );
 }
 
+function AiRoadmap() {
+  return (
+    <section className="relative px-6 pb-24 sm:pb-28">
+      <SectionHeading
+        eyebrow="What's next"
+        title={<>More AI, <GradientText>coming soon</GradientText></>}
+        subtitle="We ship new AI features every few weeks. Here is what we are building now."
+      />
+      <div className="mx-auto mt-12 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {AI_ROADMAP.map((r, i) => (
+          <Reveal key={r.title} delay={(i % 3) * 0.05} className="h-full">
+            <div className="h-full rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-5">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="font-semibold text-white">{r.title}</h3>
+                <ComingSoonBadge />
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">{r.text}</p>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function HowItWorks() {
   const steps = [
     { icon: Upload, title: 'Bring your contacts', text: 'Upload a spreadsheet. Columns are matched and common mistakes are fixed for you.' },
-    { icon: Palette, title: 'Design your message', text: 'Pick a template or drag blocks into place. Add images from your media library.' },
-    { icon: Workflow, title: 'Automate the follow-up', text: 'Set up welcome series and reminders once. The AI answers replies.' },
+    { icon: Palette, title: 'Create with AI', text: 'Describe your offer and Rabbit AI drafts the email or post. Fine-tune it with drag and drop.' },
+    { icon: Workflow, title: 'Automate the follow-up', text: 'Set up welcome series and reminders once. The AI answers WhatsApp replies.' },
     { icon: TrendingUp, title: 'Watch it grow', text: 'See opens, clicks and replies live, then repeat what works.' },
   ];
   return (
@@ -352,10 +382,11 @@ function WhyUs() {
 }
 
 const FAQS = [
-  { q: 'What is Rabbit Growth?', a: 'Rabbit Growth is one platform for email campaigns, WhatsApp marketing, social posts and automation, with a built-in AI assistant that writes messages and replies to customers.' },
+  { q: 'What is Rabbit Growth?', a: 'Rabbit Growth is an AI-powered all-in-one marketing platform. Email campaigns, WhatsApp marketing, social publishing, automation, contacts and analytics live in one place, and Rabbit AI writes content and replies to customers in your brand voice.' },
+  { q: 'Which tools can Rabbit Growth replace?', a: 'Most teams use it instead of a separate email tool, a WhatsApp sender, a social scheduler, an automation tool and an AI writing tool. Your contacts and results stay in one place.' },
   { q: 'Do I need technical or design skills?', a: 'No. You can build emails with drag and drop, start from ready-made templates and import contacts from a spreadsheet. We also help you set everything up.' },
   { q: 'Is WhatsApp sending safe for my number?', a: 'For bulk sending we recommend the official WhatsApp Business (Meta Cloud) API. You can also link a number by QR code, which is not official WhatsApp tooling and carries a risk of the number being restricted, so we add pacing, daily limits, quiet hours and auto-pause to reduce that risk.' },
-  { q: 'How does the AI assistant work?', a: 'It uses Claude, an AI model by Anthropic, together with the business information you give it. It can draft messages, suggest replies and answer common questions. When it is unsure, the chat is handed to your team.' },
+  { q: 'How does Rabbit AI work?', a: 'It uses Claude, an AI model by Anthropic, together with the brand voice and business information you give it. It writes emails, subject lines, social posts and WhatsApp messages, suggests replies and answers common questions. When it is unsure, the chat is handed to your team. Each plan includes monthly AI credits.' },
   { q: 'Can I bring my existing contacts?', a: 'Yes. Upload any CSV file. Columns are matched automatically, and contacts can have an email address, a phone number or both.' },
   { q: 'How do I get started?', a: 'Fill in the short demo form. We will contact you, show you the platform with your own use case and set up your account.' },
 ];
@@ -401,6 +432,7 @@ export default function HomePage() {
       <Channels />
       <FeatureGrid />
       <AiSection />
+      <AiRoadmap />
       <HowItWorks />
       <WhyUs />
       <Faq />
