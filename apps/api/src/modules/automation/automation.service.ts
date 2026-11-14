@@ -28,14 +28,31 @@ export async function getAutomationCampaign(orgId: string, campaignId: string) {
   return { ...campaign, activities };
 }
 
+async function assertTargets(orgId: string, targets?: Array<{ operator: string; value: string }>) {
+  if (!targets?.length) return;
+  const listIds = targets.filter((t) => t.operator === 'in_list').map((t) => t.value);
+  const segmentIds = targets.filter((t) => t.operator === 'in_segment').map((t) => t.value);
+  if (listIds.length) {
+    const n = await db('mailing_lists').where('org_id', orgId).whereIn('id', listIds).count('* as n').first();
+    if (Number(n?.n) !== new Set(listIds).size) throw new AppError(400, 'List not found');
+  }
+  if (segmentIds.length) {
+    const n = await db('segments').where('org_id', orgId).whereIn('id', segmentIds).count('* as n').first();
+    if (Number(n?.n) !== new Set(segmentIds).size) throw new AppError(400, 'Segment not found');
+  }
+}
+
 export async function createAutomationCampaign(orgId: string, input: CreateAutomationCampaignInput) {
   const id = uuidv4();
+  await assertTargets(orgId, input.target_filter);
   await db('automation_campaigns').insert({
     id,
     org_id: orgId,
     name: input.name,
     target_filter: JSON.stringify(input.target_filter),
     unique_field: input.unique_field,
+    email_from: input.email_from || null,
+    reply_to: input.reply_to || null,
     state: 'draft',
   });
   return getAutomationCampaign(orgId, id);
@@ -45,10 +62,13 @@ export async function updateAutomationCampaign(orgId: string, campaignId: string
   const existing = await db('automation_campaigns').where({ id: campaignId, org_id: orgId }).first();
   if (!existing) throw new AppError(404, 'Automation campaign not found');
 
+  await assertTargets(orgId, input.target_filter);
   const updates: Record<string, unknown> = {};
   if (input.name !== undefined) updates.name = input.name;
   if (input.target_filter !== undefined) updates.target_filter = JSON.stringify(input.target_filter);
   if (input.unique_field !== undefined) updates.unique_field = input.unique_field;
+  if (input.email_from !== undefined) updates.email_from = input.email_from || null;
+  if (input.reply_to !== undefined) updates.reply_to = input.reply_to || null;
 
   if (Object.keys(updates).length > 0) {
     updates.updated_at = new Date();
@@ -69,6 +89,11 @@ export async function startAutomationCampaign(orgId: string, campaignId: string)
     .first();
 
   if (!beginActivity) throw new AppError(400, 'Campaign must have at least one "begin" activity');
+
+  const targets = (typeof campaign.target_filter === 'string' ? JSON.parse(campaign.target_filter) : campaign.target_filter) || [];
+  if (!Array.isArray(targets) || !targets.some((t: { operator?: string; value?: unknown }) => (t.operator === 'in_list' || t.operator === 'in_segment') && t.value)) {
+    throw new AppError(400, 'Choose a list or segment as the audience before starting');
+  }
 
   await db('automation_campaigns').where('id', campaignId).update({
     state: 'running',

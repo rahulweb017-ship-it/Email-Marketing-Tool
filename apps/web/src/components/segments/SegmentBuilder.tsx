@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Eye } from 'lucide-react';
+import { Plus, Eye, Sparkles } from 'lucide-react';
 import Modal from '../ui/Modal';
 import SegmentRuleRow from './SegmentRuleRow';
+import AiCreditsLine from '../ai/AiCreditsLine';
+import { aiBuildSegment, aiErrorMessage } from '../../api/ai';
 import api from '../../api/client';
 import { useToastStore } from '../../stores/toast.store';
 
@@ -42,9 +44,17 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
   const [saving, setSaving] = useState(false);
   const [previewCount, setPreviewCount] = useState<number | null>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiNotes, setAiNotes] = useState<string[]>([]);
+  const [aiRuns, setAiRuns] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
+      setAiPrompt('');
+      setAiError('');
+      setAiNotes([]);
       if (segment) {
         setName(segment.name);
         setDescription(segment.description || '');
@@ -79,33 +89,36 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
     setPreviewCount(null);
   };
 
+  const runAi = async () => {
+    if (aiPrompt.trim().length < 5) return;
+    setAiBusy(true); setAiError(''); setAiNotes([]);
+    try {
+      const draft = await aiBuildSegment(aiPrompt.trim());
+      if (draft.filter_rules.rules.length) {
+        setMatch(draft.filter_rules.match);
+        setRules(draft.filter_rules.rules.map((r) => ({ ...r, value: r.value ?? '' })));
+        setPreviewCount(draft.preview.count);
+        if (!name.trim()) setName(draft.name);
+        if (!description.trim()) setDescription(draft.description);
+      } else {
+        setAiError('No rules could be built from that description.');
+      }
+      setAiNotes(draft.unsupported);
+    } catch (err) {
+      setAiError(aiErrorMessage(err));
+    } finally {
+      setAiBusy(false); setAiRuns((n) => n + 1);
+    }
+  };
+
   const handlePreview = async () => {
     if (rules.length === 0) return;
     setPreviewing(true);
     try {
-      if (segment) {
-        // Save first, then compute
-        await api.patch(`/segments/${segment.id}`, {
-          name,
-          description: description || undefined,
-          filter_rules: { match, rules },
-        });
-        const { data } = await api.post(`/segments/${segment.id}/compute`);
-        setPreviewCount(data.cached_count);
-      } else {
-        // For new segments, create temporarily to compute then show
-        const { data: created } = await api.post('/segments', {
-          name: name || 'Preview Segment',
-          description: description || undefined,
-          filter_rules: { match, rules },
-        });
-        const { data } = await api.post(`/segments/${created.id}/compute`);
-        setPreviewCount(data.cached_count);
-        // Clean up: delete the temporary segment
-        await api.delete(`/segments/${created.id}`);
-      }
-    } catch {
-      addToast('Failed to preview segment count', 'error');
+      const { data } = await api.post('/segments/preview', { filter_rules: { match, rules } });
+      setPreviewCount(data.count);
+    } catch (err) {
+      addToast(aiErrorMessage(err, 'Failed to preview segment count'), 'error');
     } finally {
       setPreviewing(false);
     }
@@ -140,8 +153,8 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
       }
       onSaved();
       onClose();
-    } catch {
-      addToast('Failed to save segment', 'error');
+    } catch (err) {
+      addToast(aiErrorMessage(err, 'Failed to save segment'), 'error');
     } finally {
       setSaving(false);
     }
@@ -189,8 +202,37 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
       footer={footer}
     >
       <div className="space-y-5">
-        {/* Name */}
-        <div>
+        {/* Rabbit AI */}
+        <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/60 dark:bg-violet-950/30 p-4 space-y-2">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-violet-800 dark:text-violet-200">
+            <Sparkles className="h-4 w-4" /> Describe your audience
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); runAi(); } }}
+              placeholder="e.g. Engaged contacts in India who haven't opened in 60 days"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-sm"
+              maxLength={1000}
+            />
+            <button type="button" onClick={runAi} disabled={aiBusy || aiPrompt.trim().length < 5}
+              className="shrink-0 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+              {aiBusy ? 'Building...' : 'Build rules'}
+            </button>
+          </div>
+          {aiError && <p className="text-sm text-red-600">{aiError}</p>}
+          {aiNotes.length > 0 && (
+            <div className="text-xs text-amber-700 dark:text-amber-300">
+              <p className="font-medium">Couldn't be turned into rules:</p>
+              <ul className="list-disc pl-4">{aiNotes.map((n) => <li key={n}>{n}</li>)}</ul>
+            </div>
+          )}
+          <AiCreditsLine refreshKey={aiRuns} />
+        </div>
+
+        {/* Name */}        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
           <input
             type="text"

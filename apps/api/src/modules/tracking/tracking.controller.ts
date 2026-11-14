@@ -5,12 +5,33 @@ import { db } from '../../config/database.js';
 import { generateTraceToken, generateUnsubscribeToken, timingSafeEqual } from '../../shared/utils/hmac.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
 import { confirmSubscription } from '../lists/list.service.js';
+import { automationEventQueue } from '../../config/queue.js';
+
+function enqueueAutomationEvent(trace: { id: string; contact_id: string; automation_trace_id?: string | null }, eventType: 'mail_opened' | 'mail_clicked') {
+  if (!trace.automation_trace_id) return;
+  automationEventQueue
+    .add(eventType, { event_type: eventType, mailing_trace_id: trace.id, contact_id: trace.contact_id }, { jobId: `${eventType}-${trace.id}` })
+    .catch(() => {});
+}
 
 export const trackingRouter = Router();
 
 // 1x1 transparent GIF pixel
 const PIXEL_GIF = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
+/** Unsubscribing from an automation email takes the contact out of that automation. */
+async function leaveAutomation(campaignId: string, contactId: string) {
+  const campaign = await db('campaigns').where('id', campaignId).select('is_automation', 'automation_activity_id').first();
+  if (!campaign?.is_automation || !campaign.automation_activity_id) return;
+  const activity = await db('automation_activities').where('id', campaign.automation_activity_id).select('campaign_id').first();
+  if (!activity) return;
+  const participantIds = await db('automation_participants')
+    .where({ campaign_id: activity.campaign_id, contact_id: contactId, state: 'running' })
+    .pluck('id');
+  if (!participantIds.length) return;
+  await db('automation_participants').whereIn('id', participantIds).update({ state: 'removed' });
+  await db('automation_traces').whereIn('participant_id', participantIds).where('state', 'scheduled').update({ state: 'cancelled' });
+}
 /**
  * GET /t/:traceId/:token/pixel.gif
  * Open tracking pixel - mirrors Odoo's track_mail_open (mass_mailing/controllers/main.py:398)
@@ -56,7 +77,7 @@ trackingRouter.get('/t/:traceId/:token/pixel.gif', async (req: Request, res: Res
 
     await db('mailing_traces').where('id', traceId).update(updates);
 
-    // TODO: Enqueue tracking event for automation engine
+    if (!trace.first_open_at) enqueueAutomationEvent(trace, 'mail_opened');
   } catch {
     // Silently fail - always serve pixel
   }
@@ -114,7 +135,7 @@ trackingRouter.get('/r/:code/m/:traceId', async (req: Request, res: Response) =>
         });
       }
 
-      // TODO: Enqueue click event for automation engine
+      if (!trace.first_click_at) enqueueAutomationEvent(trace, 'mail_clicked');
     }
 
     res.redirect(301, link.original_url);
@@ -166,7 +187,7 @@ trackingRouter.get('/unsubscribe/:campaignId', async (req: Request, res: Respons
 <style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:0 20px}
 h1{font-size:24px}label{display:block;margin:8px 0}button{padding:10px 20px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;margin-top:16px}</style></head>
 <body><h1>Unsubscribe</h1><p>Hi ${contact.first_name || contact.email},</p>
-<p>Select the lists you'd like to unsubscribe from:</p>
+${lists.length ? "<p>Select the lists you'd like to unsubscribe from:</p>" : '<p>Confirm to stop receiving these emails.</p>'}
 <form method="POST" action="/unsubscribe/${campaignId}">
 <input type="hidden" name="contact_id" value="${contact_id}">
 <input type="hidden" name="token" value="${token}">
@@ -233,6 +254,7 @@ trackingRouter.post('/unsubscribe/:campaignId', async (req: Request, res: Respon
         await trx('contacts').where('id', contact_id).update({ is_blacklisted: true });
       }
     });
+    await leaveAutomation(String(campaignId), String(contact_id));
 
     res.type('html').send(`<!DOCTYPE html><html><head><title>Unsubscribed</title>
 <style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:0 20px;text-align:center}h1{color:#27ae60}</style></head>
@@ -271,6 +293,7 @@ trackingRouter.post('/unsubscribe/:campaignId/oneclick', async (req: Request, re
       .where('contact_id', contact_id)
       .whereIn('list_id', listIds)
       .update({ opt_out: true, opt_out_at: new Date() });
+    await leaveAutomation(String(campaignId), String(contact_id));
 
     await db('campaigns').where('id', campaignId).update({
       stat_unsubscribed: db.raw('stat_unsubscribed + 1'),

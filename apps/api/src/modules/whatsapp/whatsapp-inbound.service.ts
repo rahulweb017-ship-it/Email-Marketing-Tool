@@ -92,6 +92,14 @@ async function handleMessage(event: Extract<InboundEvent, { kind: 'message' }>) 
     if (handled) return;
   }
 
+  if (event.body) {
+    // Smart inbox labels: at most one classification per conversation every two minutes.
+    const bucket = Math.floor(Date.now() / 120_000);
+    await safeQueueAdd(whatsappAiQueue, 'classify', { conversation_id: conversation.id }, {
+      jobId: `classify-${conversation.id}-${bucket}`, delay: 120_000, removeOnComplete: 1000, removeOnFail: 1000, attempts: 1,
+    });
+  }
+
   const handoffKeywords: string[] = aiSettings.handoff_keywords?.length ? aiSettings.handoff_keywords : DEFAULT_HANDOFF_KEYWORDS;
   if (account.ai_enabled && !conversation.ai_paused && wantsHuman(event.body, handoffKeywords)) {
     await flagNeedsHuman(account, conversation, 'The customer asked for a person');

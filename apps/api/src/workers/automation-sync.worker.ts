@@ -2,6 +2,7 @@ import { Worker, Job } from 'bullmq';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../config/database.js';
 import { redis } from '../config/redis.js';
+import { buildSegmentQuery } from '../modules/segments/segment.service.js';
 
 /**
  * Automation Participant Sync Worker
@@ -39,31 +40,29 @@ async function syncCampaignParticipants(campaign: {
       .pluck('contact_id'),
   );
 
-  // Get contacts matching target filter
-  // TODO: Implement proper filter evaluation (for now, get all org contacts)
-  let query = db('contacts').where('org_id', campaign.org_id).where('is_blacklisted', false);
+  // Contacts enter only through an explicit list or segment target, never "everyone in the org".
+  const filters = (Array.isArray(campaign.target_filter) ? campaign.target_filter : []) as Array<{ field?: string; operator: string; value: unknown }>;
+  const listIds = filters.filter((f) => f.operator === 'in_list' && f.value).map((f) => String(f.value));
+  const segmentIds = filters.filter((f) => f.operator === 'in_segment' && f.value).map((f) => String(f.value));
+  if (listIds.length === 0 && segmentIds.length === 0) return;
 
-  // Apply simple filters if defined
-  const filters = Array.isArray(campaign.target_filter) ? campaign.target_filter : [];
-  for (const filter of filters as Array<{ field: string; operator: string; value: unknown }>) {
-    if (filter.field && filter.operator && filter.value !== undefined) {
-      switch (filter.operator) {
-        case 'eq': query = query.where(filter.field, filter.value); break;
-        case 'neq': query = query.whereNot(filter.field, filter.value); break;
-        case 'contains': query = query.whereILike(filter.field, `%${filter.value}%`); break;
-        case 'in_list':
-          query = query.whereExists(function () {
-            this.select('*').from('subscriptions')
-              .whereRaw('subscriptions.contact_id = contacts.id')
-              .where('subscriptions.list_id', filter.value as string)
-              .where('subscriptions.opt_out', false);
-          });
-          break;
-      }
-    }
+  let query = db('contacts').where('contacts.org_id', campaign.org_id).where('contacts.is_blacklisted', false);
+  if (listIds.length > 0) {
+    query = query.whereExists(function () {
+      this.select('*').from('subscriptions')
+        .whereRaw('subscriptions.contact_id = contacts.id')
+        .whereIn('subscriptions.list_id', listIds)
+        .where('subscriptions.opt_out', false);
+    });
+  }
+  for (const segmentId of segmentIds) {
+    const segment = await db('segments').where({ id: segmentId, org_id: campaign.org_id }).first();
+    const fr = segment && (typeof segment.filter_rules === 'string' ? JSON.parse(segment.filter_rules) : segment.filter_rules);
+    if (!fr?.rules?.length) return;
+    query = query.whereIn('contacts.id', buildSegmentQuery(campaign.org_id, fr.rules, fr.match).select('contacts.id'));
   }
 
-  const matchingContacts = await query.select('id');
+  const matchingContacts = await query.select('contacts.id');
   const matchingIds = new Set(matchingContacts.map((c: { id: string }) => c.id));
 
   // Get 'begin' activities for this campaign

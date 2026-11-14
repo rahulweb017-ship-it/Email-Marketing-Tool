@@ -4,6 +4,8 @@ import { db } from '../config/database.js';
 import { redis } from '../config/redis.js';
 import { normalizeEmail } from '../shared/utils/email-validator.js';
 import { checkEmailLimit } from '../modules/usage/usage.service.js';
+import { buildSegmentQuery } from '../modules/segments/segment.service.js';
+import { delayUntilHour, groupBySendHour } from '../shared/utils/send-time.js';
 
 const EMAIL_SEND_BATCH_SIZE = 50;
 
@@ -62,8 +64,19 @@ async function processCampaign(job: Job<CampaignProcessJob>) {
       return;
     }
 
-    // 2. Resolve recipients: active subscribers across all lists
-    const recipients = await db('contacts')
+    // 2. Resolve recipients: active subscribers across all lists, narrowed by the segment if one is set
+    let segmentFilter: ReturnType<typeof buildSegmentQuery> | null = null;
+    if (campaign.segment_id) {
+      const segment = await db('segments').where({ id: campaign.segment_id, org_id }).first();
+      const fr = segment && (typeof segment.filter_rules === 'string' ? JSON.parse(segment.filter_rules) : segment.filter_rules);
+      if (!fr?.rules?.length) {
+        await failCampaign(campaign_id, 'The selected segment no longer exists or has no rules.');
+        return;
+      }
+      segmentFilter = buildSegmentQuery(org_id, fr.rules, fr.match).select('contacts.id');
+    }
+
+    const recipientQuery = db('contacts')
       .join('subscriptions', 'contacts.id', 'subscriptions.contact_id')
       .whereIn('subscriptions.list_id', listIds)
       .where('subscriptions.opt_out', false)
@@ -72,7 +85,9 @@ async function processCampaign(job: Job<CampaignProcessJob>) {
       .whereNotNull('contacts.email')
       .distinct('contacts.id', 'contacts.email', 'contacts.email_normalized',
         'contacts.first_name', 'contacts.last_name', 'contacts.company_name',
-        'contacts.custom_fields');
+        'contacts.custom_fields', 'contacts.best_send_hour');
+    if (segmentFilter) recipientQuery.whereIn('contacts.id', segmentFilter);
+    const recipients = await recipientQuery;
 
     // 3. Deduplicate by normalized email
     const seen = new Set<string>();
@@ -108,6 +123,7 @@ async function processCampaign(job: Job<CampaignProcessJob>) {
       email: r.email,
       trace_status: 'outgoing' as const,
     }));
+    const hourByTrace = new Map(finalRecipients.map((r, i) => [traces[i].id, r.best_send_hour as number | null]));
 
     // Insert in chunks to avoid massive single query
     const CHUNK_SIZE = 1000;
@@ -128,24 +144,44 @@ async function processCampaign(job: Job<CampaignProcessJob>) {
       bounced: '0', failed: '0', replied: '0',
     });
 
-    // 7. Split into batches and enqueue to email:send queue
+    // 7. Split into batches and enqueue to email:send queue. With send-time optimisation each
+    // contact's batch is delayed to the hour they usually open; contacts without history use the
+    // audience's most common hour.
     const { queues } = await import('../config/queue.js');
-    for (let i = 0; i < traces.length; i += EMAIL_SEND_BATCH_SIZE) {
-      const batch = traces.slice(i, i + EMAIL_SEND_BATCH_SIZE);
+    const withHour = traces.map((t) => ({ ...t, best_send_hour: campaign.send_time_optimized ? hourByTrace.get(t.id) ?? null : null }));
+    const groups = groupBySendHour(withHour, campaign.send_time_optimized ? mostCommonHour(withHour.map((t) => t.best_send_hour)) : null);
+    const now = new Date();
+    const batches: Array<{ ids: string[]; delay: number }> = [];
+    for (const [hour, group] of groups) {
+      const delay = hour === null ? 0 : delayUntilHour(now, hour);
+      for (let i = 0; i < group.length; i += EMAIL_SEND_BATCH_SIZE) {
+        batches.push({ ids: group.slice(i, i + EMAIL_SEND_BATCH_SIZE).map((t) => t.id), delay });
+      }
+    }
+    for (const [index, batch] of batches.entries()) {
       await queues.emailSend.add('send-batch', {
         campaign_id,
         org_id,
-        trace_ids: batch.map((t) => t.id),
-        batch_index: Math.floor(i / EMAIL_SEND_BATCH_SIZE),
-        total_batches: Math.ceil(traces.length / EMAIL_SEND_BATCH_SIZE),
-      });
+        trace_ids: batch.ids,
+        batch_index: index,
+        total_batches: batches.length,
+      }, batch.delay > 0 ? { delay: batch.delay } : undefined);
     }
 
-    console.log(`Campaign ${campaign_id}: ${traces.length} recipients in ${Math.ceil(traces.length / EMAIL_SEND_BATCH_SIZE)} batches`);
+    console.log(`Campaign ${campaign_id}: ${traces.length} recipients in ${batches.length} batches${campaign.send_time_optimized ? ' (send-time optimised)' : ''}`);
   } catch (err) {
     console.error(`Campaign ${campaign_id} processing failed:`, err);
     await failCampaign(campaign_id, `Processing failed: ${(err as Error).message}`);
   }
+}
+
+function mostCommonHour(hours: Array<number | null>): number | null {
+  const counts = new Map<number, number>();
+  for (const h of hours) if (h !== null && h !== undefined) counts.set(h, (counts.get(h) || 0) + 1);
+  let best: number | null = null;
+  let bestCount = 0;
+  for (const [h, n] of counts) if (n > bestCount) { best = h; bestCount = n; }
+  return best;
 }
 
 /**

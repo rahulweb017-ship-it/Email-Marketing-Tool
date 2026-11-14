@@ -13,7 +13,7 @@ analyticsRouter.get('/overview', async (req: Request, res: Response, next: NextF
 
     const [contactCount] = await db('contacts').where('org_id', orgId).count('* as count');
     const [listCount] = await db('mailing_lists').where('org_id', orgId).count('* as count');
-    const [campaignCount] = await db('campaigns').where('org_id', orgId).count('* as count');
+    const [campaignCount] = await db('campaigns').where({ org_id: orgId, is_automation: false }).count('* as count');
     const [sentCampaigns] = await db('campaigns').where({ org_id: orgId, state: 'done' }).count('* as count');
 
     // Compute stats from mailing_traces (source of truth) instead of stale stat_* columns

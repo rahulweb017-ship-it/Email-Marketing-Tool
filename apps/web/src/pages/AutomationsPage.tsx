@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Play, Square, Users, Workflow, Trash2 } from 'lucide-react';
+import { Plus, Play, Square, Users, Workflow, Trash2, Sparkles } from 'lucide-react';
+import AiAutomationBuilderModal from '../components/ai/AiAutomationBuilderModal';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import Badge from '../components/ui/Badge';
@@ -35,6 +36,7 @@ export default function AutomationsPage() {
   const [automations, setAutomations] = useState<AutomationCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [showAi, setShowAi] = useState(false);
   const [createName, setCreateName] = useState('');
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AutomationCampaign | null>(null);
@@ -102,10 +104,16 @@ export default function AutomationsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold dark:text-gray-100">Automations</h1>
-        <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm">
-          <Plus className="h-4 w-4" /> New Automation
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowAi(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 text-sm">
+            <Sparkles className="h-4 w-4" /> Build with AI
+          </button>
+          <button onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm">
+            <Plus className="h-4 w-4" /> New Automation
+          </button>
+        </div>
       </div>
 
       {loading ? <ListSkeleton /> : automations.length === 0 ? (
@@ -178,6 +186,8 @@ export default function AutomationsPage() {
       }>
         <TextInput label="Automation Name" name="name" value={createName} onChange={setCreateName} required placeholder="e.g. Welcome Email Series" />
       </Modal>
+
+      <AiAutomationBuilderModal isOpen={showAi} onClose={() => setShowAi(false)} />
 
       <ConfirmDialog isOpen={!!stopTarget} onClose={() => setStopTarget(null)}
         onConfirm={() => stopTarget && handleAction(stopTarget.id, 'stop')}

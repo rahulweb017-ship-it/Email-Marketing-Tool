@@ -14,6 +14,8 @@ import Badge from '../components/ui/Badge'
 import { PageLoader } from '../components/ui/Spinner'
 import { useToastStore } from '../stores/toast.store'
 import { useCountUp } from '../hooks/useCountUp'
+import CampaignInsightsPanel from '../components/ai/CampaignInsightsPanel'
+import type { CampaignInsights } from '../api/ai'
 
 interface Campaign {
   id: string
@@ -27,6 +29,8 @@ interface Campaign {
   stat_clicked: number
   stat_bounced: number
   stat_unsubscribed: number
+  ai_insights?: CampaignInsights | string | null
+  ai_insights_at?: string | null
 }
 
 interface TimelinePoint {
@@ -380,6 +384,9 @@ export default function CampaignAnalyticsPage() {
         <CountUpCard value={campaign.stat_bounced} label="Bounced" icon={AlertTriangle} color="bg-red-500" delay={0.24} />
         <CountUpCard value={campaign.stat_unsubscribed} label="Unsubscribed" icon={UserMinus} color="bg-gray-500" delay={0.32} />
       </div>
+
+      <CampaignInsightsPanel campaignId={campaign.id} initial={campaign.ai_insights} initialAt={campaign.ai_insights_at}
+        canRun={(campaign.state === 'done' || campaign.state === 'sending') && campaign.stat_sent > 0} />
 
       {/* Timeline Chart */}
       {chartData.length > 0 && (

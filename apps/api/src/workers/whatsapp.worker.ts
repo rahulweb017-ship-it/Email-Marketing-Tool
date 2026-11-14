@@ -3,6 +3,7 @@ import { redis } from '../config/redis.js';
 import { enqueueDueCampaigns, expandCampaign } from '../modules/whatsapp/whatsapp-campaigns.service.js';
 import { processInboundEvent, processMetaWebhook, type InboundEvent } from '../modules/whatsapp/whatsapp-inbound.service.js';
 import { runAutoReply } from '../modules/whatsapp/whatsapp-ai.service.js';
+import { classifyConversation } from '../modules/ai/inbox.service.js';
 
 /** Campaign expansion + the scheduled-campaign check. */
 export function createWhatsAppCampaignWorker() {
@@ -22,6 +23,7 @@ export function createWhatsAppInboundWorker() {
 
 export function createWhatsAppAiWorker() {
   return new Worker('whatsapp-ai-reply', async (job) => {
+    if (job.name === 'classify') return classifyConversation(job.data.conversation_id);
     return runAutoReply(job.data.conversation_id, job.data.message_id);
   }, { connection: redis, concurrency: 3 });
 }

@@ -3,74 +3,69 @@ import { Knex } from 'knex';
 import { db } from '../../config/database.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
 import type { PaginationParams } from '../../shared/utils/pagination.js';
-import type { CreateSegmentInput, UpdateSegmentInput, SegmentRule } from './segment.schema.js';
+import type { CreateSegmentInput, UpdateSegmentInput, SegmentRule, FilterRules } from './segment.schema.js';
+import { SEGMENT_FIELDS, validateRule, daysAgo, escapeLike } from './segment.rules.js';
 
-function buildSegmentQuery(orgId: string, rules: SegmentRule[], match: string) {
+export function buildSegmentQuery(orgId: string, rules: SegmentRule[], match: string) {
   let query = db('contacts').where('contacts.org_id', orgId);
 
-  const ALLOWED_FIELDS = new Set(['email', 'first_name', 'last_name', 'company_name', 'job_title', 'phone', 'city', 'state', 'country', 'is_blacklisted', 'engagement_score']);
-
   const applyRule = (builder: Knex.QueryBuilder, rule: SegmentRule) => {
-    const { field, operator, value } = rule;
-    if (!ALLOWED_FIELDS.has(field)) return;
-    const column = `contacts.${field}`;
+    // Invalid rules (e.g. saved before validation existed) match nobody rather than everybody.
+    if (validateRule(rule)) { builder.whereRaw('false'); return; }
+    const def = SEGMENT_FIELDS[rule.field];
+    const { value } = rule;
+    const column = `contacts.${rule.field}`;
 
-    // Handle engagement_score numeric operators
-    if (field === 'engagement_score') {
-      const numValue = Number(value);
-      switch (operator) {
-        case 'gt':
-          builder.where(column, '>', numValue);
-          break;
-        case 'gte':
-          builder.where(column, '>=', numValue);
-          break;
-        case 'lt':
-          builder.where(column, '<', numValue);
-          break;
-        case 'lte':
-          builder.where(column, '<=', numValue);
-          break;
-        case 'eq':
-        case 'equals':
-          builder.where(column, numValue);
-          break;
+    if (def.kind === 'tag') {
+      const tagged = db('contact_tags')
+        .join('tags', 'tags.id', 'contact_tags.tag_id')
+        .where('tags.org_id', orgId)
+        .whereRaw('lower(tags.name) = lower(?)', [String(value).trim()])
+        .select('contact_tags.contact_id');
+      if (rule.operator === 'has_tag') builder.whereIn('contacts.id', tagged);
+      else builder.whereNotIn('contacts.id', tagged);
+      return;
+    }
+
+    if (def.kind === 'number') {
+      const n = Number(value);
+      switch (rule.operator) {
+        case 'gt': builder.where(column, '>', n); break;
+        case 'gte': builder.where(column, '>=', n); break;
+        case 'lt': builder.where(column, '<', n); break;
+        case 'lte': builder.where(column, '<=', n); break;
+        case 'eq': case 'equals': builder.where(column, n); break;
         case 'between': {
-          // value expected as "min,max" string
-          const parts = String(value).split(',').map(Number);
-          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            builder.whereBetween(column, [parts[0], parts[1]]);
-          }
+          const [a, b] = String(value).split(',').map((p) => Number(p.trim()));
+          builder.whereBetween(column, [Math.min(a, b), Math.max(a, b)]);
           break;
         }
       }
       return;
     }
 
-    switch (operator) {
-      case 'equals':
-        builder.where(column, value ?? '');
-        break;
+    if (def.kind === 'date') {
+      switch (rule.operator) {
+        case 'within_days': builder.where(column, '>=', daysAgo(Number(value))); break;
+        case 'before_days': builder.where(column, '<', daysAgo(Number(value))); break;
+        case 'is_set': builder.whereNotNull(column); break;
+        case 'is_not_set': builder.whereNull(column); break;
+      }
+      return;
+    }
+
+    const text = String(value ?? '').trim();
+    switch (rule.operator) {
+      case 'equals': builder.whereRaw(`lower(${column}) = lower(?)`, [text]); break;
       case 'not_equals':
-        builder.whereNot(column, value ?? '');
+        builder.where(function () { this.whereNull(column).orWhereRaw(`lower(${column}) <> lower(?)`, [text]); });
         break;
-      case 'contains':
-        builder.whereILike(column, `%${value}%`);
-        break;
-      case 'starts_with':
-        builder.whereILike(column, `${value}%`);
-        break;
-      case 'is_set':
-        builder.whereNotNull(column).whereNot(column, '');
-        break;
-      case 'is_not_set':
-        builder.where(function () {
-          this.whereNull(column).orWhere(column, '');
-        });
-        break;
+      case 'contains': builder.whereILike(column, `%${escapeLike(text)}%`); break;
+      case 'starts_with': builder.whereILike(column, `${escapeLike(text)}%`); break;
+      case 'is_set': builder.whereNotNull(column).whereNot(column, ''); break;
+      case 'is_not_set': builder.where(function () { this.whereNull(column).orWhere(column, ''); }); break;
     }
   };
-
   if (match === 'any') {
     query = query.where(function () {
       for (const rule of rules) {
@@ -191,4 +186,14 @@ export async function getSegmentContacts(orgId: string, segmentId: string, pagin
     .offset(pagination.offset);
 
   return { data, total: Number(count) };
+}
+
+/** Count and sample contacts for unsaved rules, so the builder can show who would match before saving. */
+export async function previewSegment(orgId: string, filterRules: FilterRules) {
+  const [{ count }] = await buildSegmentQuery(orgId, filterRules.rules, filterRules.match).count('* as count');
+  const sample = await buildSegmentQuery(orgId, filterRules.rules, filterRules.match)
+    .select('contacts.id', 'contacts.email', 'contacts.first_name', 'contacts.last_name')
+    .orderBy('contacts.created_at', 'desc')
+    .limit(5);
+  return { count: Number(count), sample };
 }

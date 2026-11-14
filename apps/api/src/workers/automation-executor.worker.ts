@@ -2,16 +2,13 @@ import { Worker, Job } from 'bullmq';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../config/database.js';
 import { redis } from '../config/redis.js';
+import { emailSendQueue } from '../config/queue.js';
 
-// Map automation trigger types to their cancel events
-const TRIGGER_CANCEL_MAP: Record<string, string> = {
-  mail_opened: 'mail_not_open',
-  mail_clicked: 'mail_not_click',
-  mail_replied: 'mail_not_reply',
-};
+// Children scheduled as soon as the parent step runs. "Not opened/clicked/replied" steps wait out
+// their interval and are cancelled by the event worker if the contact does engage.
+const RESCHEDULE_TRIGGER_TYPES = new Set(['begin', 'activity', 'activity_completed', 'mail_not_opened', 'mail_not_clicked', 'mail_not_replied']);
 
-// Trigger types that need rescheduling
-const RESCHEDULE_TRIGGER_TYPES = new Set(['begin', 'activity']);
+const UPDATABLE_FIELDS = new Set(['first_name', 'last_name', 'company_name', 'phone', 'country_code', 'timezone', 'source']);
 
 
 /**
@@ -51,6 +48,12 @@ async function executeScheduledTraces(job: Job) {
       'aa.action_config',
       'aa.email_template_id',
       'aa.campaign_id',
+      'aa.name as activity_name',
+      'ac.org_id',
+      'ac.name as automation_name',
+      'ac.email_from',
+      'ac.reply_to',
+      'ac.target_filter',
       'ap.contact_id',
     )
     .limit(100); // Process in batches
@@ -110,6 +113,8 @@ async function executeTrace(trace: Record<string, unknown>, now: Date) {
   let conditionResult: boolean | null = null;
   switch (trace.activity_type) {
     case 'email':
+      // The editor's "Start" node is stored as an email activity without a template; it only marks the entry point.
+      if (trace.trigger_type === 'begin' && !trace.email_template_id) break;
       await executeEmailActivity(trace);
       break;
     case 'action':
@@ -139,34 +144,86 @@ async function executeTrace(trace: Record<string, unknown>, now: Date) {
 
 async function executeEmailActivity(trace: Record<string, unknown>) {
   const contactId = trace.contact_id as string;
-  const contact = await db('contacts').where('id', contactId).first();
-  if (!contact || !contact.email) return;
+  const orgId = trace.org_id as string;
+  const contact = await db('contacts').where({ id: contactId, org_id: orgId }).first();
+  if (!contact || !contact.email) throw new Error('Contact has no email address');
+  if (contact.is_blacklisted) throw new Error('Contact is blocked');
+  const blocked = await db('email_blacklist').where({ org_id: orgId, is_active: true, email_normalized: contact.email_normalized }).first();
+  if (blocked) throw new Error('Email address is on the block list');
 
-  // Get email template
   const templateId = trace.email_template_id as string;
-  if (!templateId) return;
+  if (!templateId) throw new Error('No email template chosen for this step');
+  const template = await db('email_templates').where({ id: templateId, org_id: orgId }).first();
+  if (!template) throw new Error('Email template not found');
 
-  const template = await db('email_templates').where('id', templateId).first();
-  if (!template) return;
+  const campaignId = await ensureStepCampaign(trace, template);
 
-  // Create a mini-campaign for this automation email, then enqueue
-  // For now, directly create a mailing trace that can be sent
   const mailingTraceId = uuidv4();
   await db('mailing_traces').insert({
     id: mailingTraceId,
-    campaign_id: null, // Automation-originated trace
+    campaign_id: campaignId,
     contact_id: contactId,
     email: contact.email,
     trace_status: 'outgoing',
     automation_trace_id: trace.trace_id as string,
   });
+  await db('automation_traces').where('id', trace.trace_id as string).update({ mailing_trace_id: mailingTraceId });
+  await db('campaigns').where('id', campaignId).increment('stat_total', 1);
 
-  // Update automation trace with the mailing trace reference
-  await db('automation_traces').where('id', trace.trace_id as string).update({
-    mailing_trace_id: mailingTraceId,
+  await emailSendQueue.add('send-batch', {
+    campaign_id: campaignId, org_id: orgId, trace_ids: [mailingTraceId], batch_index: 0, total_batches: 1,
+  }, { removeOnComplete: 1000, removeOnFail: 1000 });
+}
+
+/**
+ * Each automation email step gets one hidden campaign row so sending, open/click tracking and
+ * unsubscribe links work exactly like regular campaigns. Content is refreshed from the template
+ * on every send so template edits apply to the next email.
+ */
+async function ensureStepCampaign(trace: Record<string, unknown>, template: Record<string, any>): Promise<string> {
+  const orgId = trace.org_id as string;
+  const activityId = trace.activity_id as string;
+  let from = (trace.email_from as string | null) || null;
+  if (!from) {
+    const last = await db('campaigns').where({ org_id: orgId, is_automation: false }).whereNotNull('email_from')
+      .orderBy('created_at', 'desc').select('email_from').first();
+    from = last?.email_from || null;
+  }
+  if (!from) throw new Error('Set a "From" email address for this automation');
+
+  const content = {
+    subject: template.subject || template.name,
+    preview_text: template.preview_text || null,
+    body_html: template.body_html || '',
+    email_from: from,
+    reply_to: (trace.reply_to as string | null) || null,
+    updated_at: new Date(),
+  };
+  const existing = await db('campaigns').where({ org_id: orgId, is_automation: true, automation_activity_id: activityId }).first();
+  const id: string = existing?.id || uuidv4();
+  if (existing) {
+    await db('campaigns').where('id', id).update({ ...content, state: 'sending' });
+  } else {
+  await db('campaigns').insert({
+    id,
+    org_id: orgId,
+    name: `Automation: ${trace.automation_name} / ${trace.activity_name}`,
+    ...content,
+    state: 'sending',
+    use_blacklist: true,
+    is_automation: true,
+    automation_activity_id: activityId,
   });
+  }
 
-  // TODO: Enqueue to email:send queue for actual sending
+  // Linking the audience lists lets the normal unsubscribe page opt the contact out of them.
+  const targets = (typeof trace.target_filter === 'string' ? JSON.parse(trace.target_filter) : trace.target_filter) || [];
+  const listIds: string[] = Array.isArray(targets)
+    ? targets.filter((t) => t?.operator === 'in_list' && t.value).map((t) => String(t.value))
+    : [];
+  await db('campaign_lists').where('campaign_id', id).del();
+  if (listIds.length) await db('campaign_lists').insert(listIds.map((list_id) => ({ campaign_id: id, list_id })));
+  return id;
 }
 
 async function executeActionActivity(trace: Record<string, unknown>) {
@@ -207,7 +264,7 @@ async function executeActionActivity(trace: Record<string, unknown>) {
       break;
 
     case 'update_field':
-      if (config.field && config.value !== undefined) {
+      if (config.field && UPDATABLE_FIELDS.has(config.field) && config.value !== undefined) {
         await db('contacts').where('id', contactId).update({ [config.field]: config.value, updated_at: new Date() });
       }
       break;
@@ -234,8 +291,22 @@ async function executeActionActivity(trace: Record<string, unknown>) {
  * Returns true if the condition is met, false otherwise.
  */
 async function evaluateCondition(trace: Record<string, unknown>): Promise<boolean> {
-  const contact = await db('contacts').where('id', trace.contact_id).first();
-  if (!contact) return false;
+  const row = await db('contacts').where('id', trace.contact_id).first();
+  if (!row) return false;
+
+  // Pseudo-fields let a condition branch on how the contact reacted to the most recent
+  // email this automation sent them.
+  const lastMail = await db('automation_traces as at')
+    .join('mailing_traces as mt', 'mt.id', 'at.mailing_trace_id')
+    .where('at.participant_id', trace.participant_id as string)
+    .orderBy('mt.created_at', 'desc')
+    .select('mt.first_open_at', 'mt.first_click_at')
+    .first();
+  const contact: Record<string, unknown> = {
+    ...row,
+    last_email_opened: lastMail?.first_open_at ? 'yes' : 'no',
+    last_email_clicked: lastMail?.first_click_at ? 'yes' : 'no',
+  };
 
   const filterRaw = typeof trace.activity_filter === 'string'
     ? JSON.parse(trace.activity_filter as string)
@@ -263,12 +334,16 @@ async function evaluateCondition(trace: Record<string, unknown>): Promise<boolea
   return true;
 }
 
+function norm(v: unknown): string {
+  return v === null || v === undefined ? '' : String(v).trim().toLowerCase();
+}
+
 function evaluateSingleRule(contact: Record<string, unknown>, rule: { field: string; operator: string; value?: unknown }): boolean {
   const value = contact[rule.field];
   switch (rule.operator) {
-    case 'eq': return value === rule.value;
-    case 'neq': return value !== rule.value;
-    case 'contains': return String(value || '').includes(String(rule.value || ''));
+    case 'eq': return norm(value) === norm(rule.value);
+    case 'neq': return norm(value) !== norm(rule.value);
+    case 'contains': return norm(value).includes(norm(rule.value));
     case 'not_empty': return !!value;
     default: return true;
   }

@@ -21,6 +21,8 @@ export const createCampaignSchema = z.object({
   utm_source: z.string().max(100).optional(),
   list_ids: z.array(z.string().uuid()).optional(),
   segment_ids: z.array(z.string().uuid()).optional(),
+  segment_id: z.string().uuid().nullable().optional(),
+  send_time_optimized: z.boolean().optional(),
 });
 
 export const updateCampaignSchema = createCampaignSchema.partial();

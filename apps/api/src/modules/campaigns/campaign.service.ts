@@ -9,8 +9,8 @@ import { campaignProcessQueue } from '../../config/queue.js';
 import { safeQueueAdd } from '../../shared/utils/queue-helper.js';
 
 export async function listCampaigns(orgId: string, pagination: PaginationParams, filters?: { state?: string; search?: string }) {
-  let query = db('campaigns').where('org_id', orgId);
-  let countQuery = db('campaigns').where('org_id', orgId);
+  let query = db('campaigns').where({ org_id: orgId, is_automation: false });
+  let countQuery = db('campaigns').where({ org_id: orgId, is_automation: false });
 
   if (filters?.state) {
     query = query.where('state', filters.state);
@@ -48,8 +48,15 @@ export async function getCampaign(orgId: string, campaignId: string) {
   return { ...campaign, lists };
 }
 
+async function assertSegment(orgId: string, segmentId?: string | null) {
+  if (!segmentId) return;
+  const segment = await db('segments').where({ id: segmentId, org_id: orgId }).first('id');
+  if (!segment) throw new AppError(400, 'Segment not found');
+}
+
 export async function createCampaign(orgId: string, input: CreateCampaignInput) {
   const id = uuidv4();
+  await assertSegment(orgId, input.segment_id);
 
   await db.transaction(async (trx) => {
     await trx('campaigns').insert({
@@ -72,6 +79,8 @@ export async function createCampaign(orgId: string, input: CreateCampaignInput) 
       utm_campaign: input.utm_campaign || null,
       utm_medium: input.utm_medium || 'email',
       utm_source: input.utm_source || null,
+      segment_id: input.segment_id || null,
+      send_time_optimized: input.send_time_optimized ?? false,
       state: 'draft',
     });
 
@@ -96,7 +105,9 @@ export async function updateCampaign(orgId: string, campaignId: string, input: U
     'body_html', 'campaign_type', 'schedule_type', 'schedule_date',
     'ab_test_enabled', 'ab_test_percentage', 'use_blacklist',
     'sending_config_id', 'utm_campaign', 'utm_medium', 'utm_source',
+    'segment_id', 'send_time_optimized',
   ] as const;
+  await assertSegment(orgId, input.segment_id);
 
   for (const field of fields) {
     if (input[field] !== undefined) updates[field] = input[field] ?? null;
@@ -140,7 +151,7 @@ export async function duplicateCampaign(orgId: string, campaignId: string) {
   if (!original) throw new AppError(404, 'Campaign not found');
 
   const newId = uuidv4();
-  const { id, created_at, updated_at, state, sent_date, stat_total, stat_sent, stat_delivered, stat_opened, stat_clicked, stat_replied, stat_bounced, stat_failed, stat_unsubscribed, ...rest } = original;
+  const { id, created_at, updated_at, state, sent_date, stat_total, stat_sent, stat_delivered, stat_opened, stat_clicked, stat_replied, stat_bounced, stat_failed, stat_unsubscribed, ai_insights, ai_insights_at, ...rest } = original;
 
   await db.transaction(async (trx) => {
     await trx('campaigns').insert({

@@ -122,7 +122,7 @@ export async function sendSingle(orgId: string, userId: string, input: SendMessa
 // ─── Inbox ───
 
 export async function listConversations(orgId: string, pagination: PaginationParams, filters: {
-  account_id?: string; status?: string; unread?: boolean; search?: string;
+  account_id?: string; status?: string; unread?: boolean; search?: string; intent?: string; hot?: boolean;
 }) {
   const base = db('whatsapp_conversations as c')
     .leftJoin('contacts as ct', 'ct.id', 'c.contact_id')
@@ -131,6 +131,8 @@ export async function listConversations(orgId: string, pagination: PaginationPar
   if (filters.account_id) base.where('c.account_id', filters.account_id);
   if (filters.status) base.where('c.status', filters.status);
   if (filters.unread) base.where('c.unread_count', '>', 0);
+  if (filters.intent) base.where('c.ai_intent', filters.intent);
+  if (filters.hot) base.where('c.ai_hot_lead', true);
   if (filters.search) {
     const s = `%${filters.search}%`;
     base.where((b) => b.whereILike('c.phone_e164', s).orWhereILike('c.profile_name', s)

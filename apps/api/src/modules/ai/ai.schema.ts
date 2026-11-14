@@ -40,6 +40,13 @@ export const subjectLinesSchema = z.object({
   message: 'Describe the email, or add some content first',
 });
 
+export const segmentBuildSchema = z.object({ description: z.string().min(5).max(1000) });
+
+export const automationBuildSchema = z.object({
+  description: z.string().min(10).max(2000),
+  cta_url: z.string().url().max(500).optional(),
+});
+
 export const socialWriteSchema = z.object({
   brief: z.string().min(5).max(2000),
   platforms: z.array(z.enum(['twitter', 'facebook', 'linkedin', 'instagram'])).min(1).max(4),

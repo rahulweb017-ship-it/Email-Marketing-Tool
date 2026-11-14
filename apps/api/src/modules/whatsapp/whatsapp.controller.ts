@@ -102,6 +102,8 @@ whatsappRouter.get('/conversations', async (req, res, next) => {
       status: req.query.status as string | undefined,
       unread: req.query.unread === 'true',
       search: req.query.search as string | undefined,
+      intent: typeof req.query.intent === 'string' ? req.query.intent : undefined,
+      hot: req.query.hot === 'true',
     });
     res.json(paginatedResponse(data, total, pagination));
   } catch (err) { next(err); }

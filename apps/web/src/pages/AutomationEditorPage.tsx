@@ -31,7 +31,7 @@ interface Activity {
 const PALETTE_ITEMS = [
   { type: 'email', label: 'Send Email', icon: Mail, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/30', trigger: 'activity_completed', activityType: 'email' },
   { type: 'wait', label: 'Wait', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', trigger: 'activity_completed', activityType: 'wait' },
-  { type: 'condition', label: 'Condition', icon: GitBranch, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/30', trigger: 'mail_opened', activityType: 'condition' },
+  { type: 'condition', label: 'Condition', icon: GitBranch, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/30', trigger: 'activity_completed', activityType: 'condition' },
   { type: 'action', label: 'Action', icon: Cog, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800', trigger: 'activity_completed', activityType: 'action' },
 ];
 
@@ -92,6 +92,10 @@ export default function AutomationEditorPage() {
   const addToast = useToastStore((s) => s.addToast);
 
   const [automationName, setAutomationName] = useState('');
+  const [sender, setSender] = useState({ email_from: '', reply_to: '' });
+  const savedSender = useRef({ email_from: '', reply_to: '' });
+  const [audience, setAudience] = useState({ list_id: '', segment_id: '' });
+  const [audienceOptions, setAudienceOptions] = useState<{ lists: { id: string; name: string }[]; segments: { id: string; name: string }[] }>({ lists: [], segments: [] });
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [loading, setLoading] = useState(true);
@@ -102,11 +106,50 @@ export default function AutomationEditorPage() {
 
   const memoizedNodeTypes = useMemo(() => nodeTypes, []);
 
+  const saveAudience = async (next: { list_id: string; segment_id: string }) => {
+    if (!id) return;
+    setAudience(next);
+    const target_filter = [
+      ...(next.list_id ? [{ field: 'list', operator: 'in_list', value: next.list_id }] : []),
+      ...(next.segment_id ? [{ field: 'segment', operator: 'in_segment', value: next.segment_id }] : []),
+    ];
+    try {
+      await api.patch(`/automations/${id}`, { target_filter });
+      addToast('Audience saved', 'success');
+    } catch (err: any) {
+      addToast(err?.response?.data?.message || 'Could not save the audience', 'error');
+    }
+  };
+
+  useEffect(() => {
+    api.get('/automations/lists').then((r) => setAudienceOptions((o) => ({ ...o, lists: r.data || [] }))).catch(() => {});
+    api.get('/segments', { params: { per_page: 100 } }).then((r) => setAudienceOptions((o) => ({ ...o, segments: r.data?.data || [] }))).catch(() => {});
+  }, []);
+  const saveSender = async () => {
+    if (!id) return;
+    if (sender.email_from === savedSender.current.email_from && sender.reply_to === savedSender.current.reply_to) return;
+    try {
+      await api.patch(`/automations/${id}`, { email_from: sender.email_from.trim() || null, reply_to: sender.reply_to.trim() || null });
+      savedSender.current = { ...sender };
+      addToast('Sender saved', 'success');
+    } catch (err: any) {
+      addToast(err?.response?.data?.message || 'Enter a valid email address', 'error');
+    }
+  };
+
   const loadAutomation = useCallback(async () => {
     if (!id) return;
     try {
       const { data } = await api.get(`/automations/${id}`);
       setAutomationName(data.name);
+      const s = { email_from: data.email_from || '', reply_to: data.reply_to || '' };
+      setSender(s);
+      savedSender.current = s;
+      const targets: { operator: string; value: string }[] = Array.isArray(data.target_filter) ? data.target_filter : [];
+      setAudience({
+        list_id: targets.find((t) => t.operator === 'in_list')?.value || '',
+        segment_id: targets.find((t) => t.operator === 'in_segment')?.value || '',
+      });
       const activities: Activity[] = data.activities || [];
       activitiesRef.current = activities;
 
@@ -290,6 +333,31 @@ export default function AutomationEditorPage() {
               </button>
             );
           })}
+          <div className="pt-3 border-t dark:border-gray-700 space-y-2">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Audience</h3>
+            <select aria-label="Audience list" value={audience.list_id} onChange={(e) => saveAudience({ ...audience, list_id: e.target.value })}
+              className="w-full px-2 py-1.5 text-sm border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+              <option value="">Any list</option>
+              {audienceOptions.lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+            <select aria-label="Audience segment" value={audience.segment_id} onChange={(e) => saveAudience({ ...audience, segment_id: e.target.value })}
+              className="w-full px-2 py-1.5 text-sm border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+              <option value="">No segment</option>
+              {audienceOptions.segments.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {audience.list_id || audience.segment_id ? 'Matching contacts join within about 5 minutes of starting.' : 'Choose a list, a segment or both before starting.'}
+            </p>
+          </div>          <div className="pt-3 border-t dark:border-gray-700 space-y-2">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Sender</h3>
+            <input type="email" placeholder="From email" value={sender.email_from}
+              onChange={(e) => setSender((s) => ({ ...s, email_from: e.target.value }))} onBlur={saveSender}
+              className="w-full px-2 py-1.5 text-sm border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+            <input type="email" placeholder="Reply-to (optional)" value={sender.reply_to}
+              onChange={(e) => setSender((s) => ({ ...s, reply_to: e.target.value }))} onBlur={saveSender}
+              className="w-full px-2 py-1.5 text-sm border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+            <p className="text-xs text-gray-400 dark:text-gray-500">Used by Send Email steps. Leave empty to use your latest campaign's sender.</p>
+          </div>
           <div className="pt-3 border-t dark:border-gray-700">
             <p className="text-xs text-gray-400 dark:text-gray-500">Click an activity to add it. Double-click a node to configure it. Connect nodes by dragging between handles.</p>
           </div>

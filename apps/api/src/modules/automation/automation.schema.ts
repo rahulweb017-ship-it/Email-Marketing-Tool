@@ -2,8 +2,15 @@ import { z } from 'zod';
 
 export const createAutomationCampaignSchema = z.object({
   name: z.string().min(1).max(200),
-  target_filter: z.array(z.unknown()).default([]),
+  // Audience: contacts subscribed to any of the lists, narrowed by every segment
+  target_filter: z.array(z.object({
+    field: z.enum(['list', 'segment']).optional(),
+    operator: z.enum(['in_list', 'in_segment']),
+    value: z.string().uuid(),
+  })).max(10).default([]),
   unique_field: z.string().default('email'),
+  email_from: z.string().email().nullable().optional(),
+  reply_to: z.string().email().nullable().optional(),
 });
 
 export const updateAutomationCampaignSchema = createAutomationCampaignSchema.partial();

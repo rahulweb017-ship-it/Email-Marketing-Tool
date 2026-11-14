@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { authenticate, checkTenantStatus, requireRole } from '../auth/auth.middleware.js';
 import { getAiCreditUsage } from './ai.client.js';
-import { brandProfileSchema, rewriteSchema, socialWriteSchema, subjectLinesSchema, writeEmailSchema } from './ai.schema.js';
+import { automationBuildSchema, brandProfileSchema, rewriteSchema, segmentBuildSchema, socialWriteSchema, subjectLinesSchema, writeEmailSchema } from './ai.schema.js';
+import * as builders from './ai.builders.service.js';
 import * as aiService from './ai.service.js';
 import * as brand from './brand.service.js';
 
@@ -36,4 +37,16 @@ aiRouter.post('/subject-lines', async (req, res, next) => {
 
 aiRouter.post('/social/write', async (req, res, next) => {
   try { res.json(await aiService.writeSocial(org(req), req.user!.id, socialWriteSchema.parse(req.body))); } catch (err) { next(err); }
+});
+
+aiRouter.post('/segment/build', async (req, res, next) => {
+  try { res.json(await builders.buildSegment(org(req), req.user!.id, segmentBuildSchema.parse(req.body))); } catch (err) { next(err); }
+});
+
+aiRouter.post('/automation/build', async (req, res, next) => {
+  try { res.status(201).json(await builders.buildAutomation(org(req), req.user!.id, automationBuildSchema.parse(req.body))); } catch (err) { next(err); }
+});
+
+aiRouter.post('/campaigns/:id/insights', async (req, res, next) => {
+  try { res.json(await builders.campaignInsights(org(req), req.user!.id, String(req.params.id))); } catch (err) { next(err); }
 });

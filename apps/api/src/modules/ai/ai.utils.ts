@@ -9,6 +9,10 @@ export const AI_CREDIT_COSTS = {
   whatsapp_suggest: 1,
   whatsapp_auto_reply: 1,
   whatsapp_test: 1,
+  segment_build: 1,
+  automation_build: 5,
+  campaign_insights: 2,
+  inbox_classify: 1,
 } as const;
 
 export type AiFeature = keyof typeof AI_CREDIT_COSTS;

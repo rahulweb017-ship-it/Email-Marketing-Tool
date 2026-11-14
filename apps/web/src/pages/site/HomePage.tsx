@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Sparkles, Bot, CheckCheck, Upload, Palette, Workflow, TrendingUp, ShieldCheck, Gauge, Lock, HeartHandshake,
-  ChevronDown, Mail, MessageCircle, Share2, ArrowUpRight, BookOpen, UserCheck, Zap, PenLine, BarChart3, Layers,
+  ChevronDown, Mail, MessageCircle, Share2, ArrowUpRight, BookOpen, UserCheck, Zap, PenLine, BarChart3, Layers, Flame,
 } from 'lucide-react';
 import clsx from 'clsx';
 import SiteLayout from '../../components/site/SiteLayout';
@@ -136,7 +136,7 @@ function Hero() {
       <Backdrop />
       <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-[1.05fr_1fr]">
         <Reveal>
-          <Eyebrow>New: AI email writer and brand voice</Eyebrow>
+          <Eyebrow>New: AI segments, automations and campaign insights</Eyebrow>
           <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
             The <GradientText className="whitespace-nowrap">AI-powered</GradientText> all-in-one marketing platform
           </h1>
@@ -268,6 +268,9 @@ function AiSection() {
     { icon: PenLine, title: 'Writes your emails', text: 'Turn a one-line brief into a complete email, plus subject lines with scores.' },
     { icon: Share2, title: 'Writes your posts', text: 'One idea becomes a post for X, Facebook and LinkedIn, sized for each.' },
     { icon: Bot, title: 'Replies 24/7', text: 'Answers WhatsApp questions instantly, even at night and on holidays.' },
+    { icon: Workflow, title: 'Builds segments and journeys', text: 'Describe an audience or a follow-up sequence in plain words and get it ready to review.' },
+    { icon: BarChart3, title: 'Explains your results', text: 'Every campaign summarised in plain language, with what to try next.' },
+    { icon: Flame, title: 'Sorts your inbox', text: 'WhatsApp chats labelled by topic and mood, with hot leads flagged first.' },
     { icon: Layers, title: 'One brand voice', text: 'Describe your business once. Every AI feature writes like your brand.' },
     { icon: BookOpen, title: 'Learns your business', text: 'Add your products, prices and policies. The AI answers from your facts.' },
     { icon: UserCheck, title: 'Knows when to hand over', text: 'Tricky or sensitive chats go to your team, with the full history.' },

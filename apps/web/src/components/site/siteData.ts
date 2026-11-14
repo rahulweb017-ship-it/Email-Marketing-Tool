@@ -38,7 +38,7 @@ export const FEATURES: Feature[] = [
     headline: 'Emails people actually open',
     description:
       'Build professional emails in minutes with a drag-and-drop editor, ready-made templates and your own media library. Schedule campaigns, test subject lines and let the winner send itself.',
-    highlights: ['Drag-and-drop editor', 'AI email writer', 'AI subject lines', 'A/B testing with auto-winner'],
+    highlights: ['Drag-and-drop editor', 'AI email writer', 'AI subject lines', 'Send-time optimisation', 'A/B testing with auto-winner'],
     details: [
       { title: 'AI email writer', text: 'Describe your offer in a sentence and Rabbit AI drafts the whole email in your brand voice, ready to edit in the editor.' },
       { title: 'AI subject lines', text: 'Get five subject lines with a score and a reason for each, then send the best two into an A/B test.' },
@@ -47,9 +47,7 @@ export const FEATURES: Feature[] = [
       { title: 'A/B testing', text: 'Test two subject lines or designs on a sample. The better version goes to everyone else automatically.' },
       { title: 'Personalisation', text: 'Insert names, custom fields and unsubscribe links so every email feels written for one person.' },
       { title: 'Scheduling', text: 'Pick a date and time and the campaign goes out on its own, with live progress while it sends.' },
-    ],
-    roadmap: [
-      { title: 'Send-time optimisation', text: 'Each contact receives your email at the hour they usually open it.' },
+      { title: 'Send-time optimisation', text: 'Each contact receives your email at the hour they usually open it, based on their own open history.' },
       { title: 'AI campaign insights', text: 'A plain-language summary after every campaign: what worked, what did not and what to try next.' },
     ],
   },
@@ -62,7 +60,7 @@ export const FEATURES: Feature[] = [
     headline: 'WhatsApp campaigns, done safely',
     description:
       'Connect the official WhatsApp Business (Meta Cloud) API or link a number with a QR code. Send bulk campaigns with human-like pacing, manage every chat in one shared inbox and respect opt-outs automatically.',
-    highlights: ['Official Meta Cloud API', 'QR-linked numbers', 'Shared team inbox', 'Automatic STOP handling'],
+    highlights: ['Official Meta Cloud API', 'QR-linked numbers', 'Smart shared inbox', 'Automatic STOP handling'],
     details: [
       { title: 'Two ways to connect', text: 'Use the official Meta Cloud API with approved templates, or link an existing number by scanning a QR code.' },
       { title: 'Human-like pacing', text: 'Messages go out with natural gaps, daily warm-up limits and quiet hours to protect your number.' },
@@ -70,9 +68,7 @@ export const FEATURES: Feature[] = [
       { title: 'Shared inbox', text: 'Every reply lands in one inbox your whole team can see, with full message history per contact.' },
       { title: 'Consent first', text: 'Campaigns only reach contacts who opted in. Anyone who replies STOP is excluded straight away.' },
       { title: 'Delivery receipts', text: 'See sent, delivered, read and failed counts for each campaign as they happen.' },
-    ],
-    roadmap: [
-      { title: 'Smart inbox', text: 'Every reply is tagged as a lead, question or complaint, so hot leads reach your team first.' },
+      { title: 'Smart inbox', text: 'Rabbit AI labels every conversation by topic and mood and flags hot leads, so your team answers the right chats first.' },
     ],
   },
   {
@@ -84,12 +80,16 @@ export const FEATURES: Feature[] = [
     headline: 'AI in every part of your marketing',
     description:
       'Rabbit AI, powered by Claude, learns your brand voice once and uses it everywhere. It writes emails, subject lines, social posts and WhatsApp messages, suggests replies in the inbox and answers customers around the clock. When it is unsure, it hands the chat to a person.',
-    highlights: ['AI email writer', 'Subject lines with scores', 'Social post writer', '24/7 WhatsApp replies', 'One brand voice everywhere'],
+    highlights: ['AI email writer', 'AI segment and automation builders', 'Campaign insights', '24/7 WhatsApp replies', 'One brand voice everywhere'],
     details: [
       { title: 'Brand voice', text: 'Describe your business, products, audience and tone once. Every AI feature writes like your brand.' },
       { title: 'AI email writer', text: 'Turn a one-line brief into a complete email inside the drag-and-drop editor, then rewrite or shorten any text.' },
       { title: 'Subject line generator', text: 'Five subject lines with a score and a reason for each, ready to use or A/B test.' },
       { title: 'Social post writer', text: 'Write once and get versions sized for X, Facebook and LinkedIn, with hashtags.' },
+      { title: 'Segment builder', text: 'Describe an audience in plain words and get segment rules you can check and save, with a live contact count.' },
+      { title: 'Automation builder', text: 'Describe a customer journey and get a draft workflow on the canvas, with every email already written.' },
+      { title: 'Campaign insights', text: 'Every sent campaign explained in plain language, compared with your previous results.' },
+      { title: 'Smart inbox', text: 'WhatsApp conversations labelled by topic and mood, with hot leads flagged for your team.' },
       { title: 'WhatsApp replies', text: 'Draft WhatsApp messages, get reply suggestions in the inbox and let the bot answer common questions 24/7.' },
       { title: 'Teach the AI', text: 'Add your products, prices, policies and FAQs. The AI answers from your information, not guesses.' },
       { title: 'Knows when to stop', text: 'Sensitive or unclear chats are flagged for a person, and reply limits keep the bot from over-messaging.' },
@@ -110,17 +110,15 @@ export const FEATURES: Feature[] = [
     headline: 'Marketing that runs while you sleep',
     description:
       'Draw your customer journeys on a visual canvas. Choose a trigger, add waits, conditions and messages, and every new contact follows the path automatically.',
-    highlights: ['Visual journey builder', 'Triggers and delays', 'If/else conditions', 'Double opt-in'],
+    highlights: ['Visual journey builder', 'AI automation builder', 'Waits and conditions', 'Double opt-in'],
     details: [
       { title: 'Visual builder', text: 'Drag steps onto a canvas and connect them. See the whole journey at a glance.' },
-      { title: 'Smart triggers', text: 'Move people forward when they open, click, reply, get a tag, update a field or enter a segment.' },
-      { title: 'Waits and conditions', text: 'Wait hours or days, then take a different path for people who did or did not open, click or reply.' },
+      { title: 'AI automation builder', text: 'Describe a journey in plain words and Rabbit AI drafts it on the canvas, emails included, ready for you to review.' },
+      { title: 'Smart triggers', text: 'Start people from a list or segment, then move them forward after each step or when they open or click an email.' },
+      { title: 'Waits and conditions', text: 'Wait hours or days, then take a different path for people who did or did not open or click, or by contact details.' },
       { title: 'Welcome series', text: 'Greet new subscribers with a sequence that introduces your brand step by step.' },
       { title: 'Double opt-in', text: 'Confirm new subscribers by email to keep your list clean and compliant.' },
       { title: 'Always on', text: 'Automations are checked every 30 seconds, so the next step is never late.' },
-    ],
-    roadmap: [
-      { title: 'AI automation builder', text: 'Describe a journey in plain words and get a ready-made draft on the canvas.' },
     ],
   },
   {
@@ -138,11 +136,11 @@ export const FEATURES: Feature[] = [
       { title: 'Email or phone', text: 'Keep contacts with an email, a phone number or both, ready for email and WhatsApp.' },
       { title: 'Custom fields', text: 'Store anything you need, such as city, plan or birthday, and use it in messages and segments.' },
       { title: 'Engagement scoring', text: 'Every contact gets a score based on opens and clicks, refreshed every hour.' },
-      { title: 'Dynamic segments', text: 'Save a filter once and the segment updates itself as contacts change.' },
+      { title: 'Dynamic segments', text: 'Filter by details, tags, engagement and recent activity. The segment updates itself as contacts change.' },
+      { title: 'AI segment builder', text: 'Type "engaged contacts who haven\'t opened in 60 days" and Rabbit AI builds the rules for you.' },
       { title: 'Consent records', text: 'Track who agreed to what and when, including blocked and unsubscribed contacts.' },
     ],
     roadmap: [
-      { title: 'AI segment builder', text: 'Type "people in Mumbai who clicked last month" and the AI builds the segment for you.' },
       { title: 'Predictive scoring', text: 'See who is likely to buy or drift away, with win-back segments created automatically.' },
     ],
   },
@@ -155,7 +153,7 @@ export const FEATURES: Feature[] = [
     headline: 'Every result, clearly explained',
     description:
       'Track opens, clicks, bounces and unsubscribes for every campaign. Compare campaigns side by side and find out which links and messages work best.',
-    highlights: ['Live campaign stats', 'Click tracking', 'Campaign comparison', 'Social metrics'],
+    highlights: ['Live campaign stats', 'AI campaign insights', 'Click tracking', 'Campaign comparison'],
     details: [
       { title: 'Live stats', text: 'Numbers refresh every 30 seconds while a campaign is sending.' },
       { title: 'Click tracking', text: 'See which links were clicked and by whom. Tracking links are signed so they cannot be faked.' },
@@ -163,8 +161,6 @@ export const FEATURES: Feature[] = [
       { title: 'Contact timeline', text: 'Open any contact to see every email, click and message in one history.' },
       { title: 'WhatsApp reports', text: 'Sent, delivered, read and replied for every WhatsApp campaign.' },
       { title: 'Social metrics', text: 'Likes, shares and reach for scheduled social posts, updated every 30 minutes.' },
-    ],
-    roadmap: [
       { title: 'AI campaign insights', text: 'Results explained in plain language, with clear suggestions for your next campaign.' },
     ],
   },
@@ -225,11 +221,6 @@ export const ENQUIRY_INTERESTS: { value: string; label: string }[] = [
 /** AI features on the roadmap, shown on the home page with a "Coming soon" badge. */
 export const AI_ROADMAP: { title: string; text: string }[] = [
   { title: 'AI marketing copilot', text: 'Ask questions about your results and let the copilot draft campaigns, segments and journeys for you.' },
-  { title: 'AI segment builder', text: 'Describe the audience you want in plain words and get a ready segment.' },
-  { title: 'AI campaign insights', text: 'Every campaign explained in plain language, with what to try next.' },
-  { title: 'Send-time optimisation', text: 'Each contact gets your message at the hour they usually engage.' },
-  { title: 'AI automation builder', text: 'Describe a customer journey and get a draft on the canvas.' },
-  { title: 'Smart inbox', text: 'Replies tagged by intent and mood, with hot leads sent to your team first.' },
   { title: 'Predictive scoring', text: 'Know who is likely to buy or leave, and win them back automatically.' },
   { title: 'AI image generation', text: 'Banners and social images created from a short description.' },
   { title: 'Lead qualification', text: 'The AI chats with new enquiries, qualifies them and adds them as contacts.' },

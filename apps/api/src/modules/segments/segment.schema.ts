@@ -1,14 +1,18 @@
 import { z } from 'zod';
+import { validateRule } from './segment.rules.js';
 
 const segmentRuleSchema = z.object({
-  field: z.enum(['email', 'first_name', 'last_name', 'company_name', 'country_code', 'created_at', 'source', 'engagement_score']),
-  operator: z.enum(['equals', 'not_equals', 'contains', 'starts_with', 'is_set', 'is_not_set', 'gt', 'gte', 'lt', 'lte', 'eq', 'between']),
-  value: z.union([z.string(), z.number(), z.null()]).optional(),
+  field: z.string().max(50),
+  operator: z.string().max(30),
+  value: z.union([z.string().max(500), z.number(), z.null()]).optional(),
+}).superRefine((rule, ctx) => {
+  const problem = validateRule(rule);
+  if (problem) ctx.addIssue({ code: z.ZodIssueCode.custom, message: problem });
 });
 
 const filterRulesSchema = z.object({
   match: z.enum(['all', 'any']),
-  rules: z.array(segmentRuleSchema).min(1),
+  rules: z.array(segmentRuleSchema).min(1).max(30),
 });
 
 export const createSegmentSchema = z.object({
@@ -18,6 +22,8 @@ export const createSegmentSchema = z.object({
 });
 
 export const updateSegmentSchema = createSegmentSchema.partial();
+
+export const previewSegmentSchema = z.object({ filter_rules: filterRulesSchema });
 
 export type SegmentRule = z.infer<typeof segmentRuleSchema>;
 export type FilterRules = z.infer<typeof filterRulesSchema>;

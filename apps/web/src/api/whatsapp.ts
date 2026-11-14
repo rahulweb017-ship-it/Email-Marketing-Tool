@@ -67,6 +67,10 @@ export interface WaConversation {
   status: 'open' | 'closed' | 'needs_human';
   ai_paused: boolean;
   ai_enabled?: boolean;
+  ai_intent?: string | null;
+  ai_sentiment?: 'positive' | 'neutral' | 'negative' | null;
+  ai_summary?: string | null;
+  ai_hot_lead?: boolean;
   whatsapp_opt_out?: boolean;
   within_service_window?: boolean;
 }

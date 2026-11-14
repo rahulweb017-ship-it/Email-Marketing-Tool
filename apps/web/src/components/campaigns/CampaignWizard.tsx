@@ -19,6 +19,7 @@ interface CampaignWizardProps {
     id: string; name: string; subject: string; preview_text: string | null;
     email_from: string; reply_to: string | null; body_html: string | null;
     use_blacklist: boolean; list_ids?: string[]; sending_config_id?: string | null;
+    segment_id?: string | null; send_time_optimized?: boolean;
   } | null;
 }
 
@@ -67,6 +68,7 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
   const [lists, setLists] = useState<ListOption[]>([]);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [providers, setProviders] = useState<ProviderOption[]>([]);
+  const [segments, setSegments] = useState<{ id: string; name: string; cached_count: number | null }[]>([]);
 
   const [contentTab, setContentTab] = useState<ContentTab>('template');
 
@@ -87,7 +89,7 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
   const [form, setForm] = useState({
     name: '', subject: '', preview_text: '', email_from: '', reply_to: '',
     body_html: '', use_blacklist: true, selectedLists: [] as string[],
-    selectedTemplate: '', sending_config_id: '' as string,
+    selectedTemplate: '', sending_config_id: '' as string, segment_id: '', send_time_optimized: false,
   });
 
   useEffect(() => {
@@ -101,6 +103,7 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
     setTestResults(null);
     api.get('/lists', { params: { per_page: 100 } }).then(({ data }) => setLists(data.data)).catch(() => {});
     api.get('/templates', { params: { per_page: 100 } }).then(({ data }) => setTemplates(data.data)).catch(() => {});
+    api.get('/segments', { params: { per_page: 100 } }).then(({ data }) => setSegments(data.data || [])).catch(() => {});
     api.get('/sending-configs').then(async ({ data }) => {
       const activeProviders = data.data.filter((p: ProviderOption) => p.is_active);
       // Fetch settings for each provider to get from_email hint
@@ -134,9 +137,10 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
         body_html: campaign.body_html || '', use_blacklist: campaign.use_blacklist ?? true,
         selectedLists: campaign.list_ids || [], selectedTemplate: '',
         sending_config_id: campaign.sending_config_id || '',
+        segment_id: campaign.segment_id || '', send_time_optimized: !!campaign.send_time_optimized,
       });
     } else {
-      setForm({ name: '', subject: '', preview_text: '', email_from: '', reply_to: '', body_html: '', use_blacklist: true, selectedLists: [], selectedTemplate: '', sending_config_id: '' });
+      setForm({ name: '', subject: '', preview_text: '', email_from: '', reply_to: '', body_html: '', use_blacklist: true, selectedLists: [], selectedTemplate: '', sending_config_id: '', segment_id: '', send_time_optimized: false });
     }
   }, [isOpen, campaign]);
 
@@ -216,6 +220,8 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
         email_from: form.email_from,
         use_blacklist: form.use_blacklist,
         list_ids: form.selectedLists,
+        segment_id: form.segment_id || null,
+        send_time_optimized: form.send_time_optimized,
       };
       if (form.preview_text) payload.preview_text = form.preview_text;
       if (form.reply_to) payload.reply_to = form.reply_to;
@@ -255,6 +261,8 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
         email_from: form.email_from,
         use_blacklist: form.use_blacklist,
         list_ids: form.selectedLists,
+        segment_id: form.segment_id || null,
+        send_time_optimized: form.send_time_optimized,
       };
       if (form.preview_text) payload.preview_text = form.preview_text;
       if (form.reply_to) payload.reply_to = form.reply_to;
@@ -505,6 +513,17 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
                     ))}
                   </div>
                 ) : null}
+                {segments.length > 0 && (
+                  <div>
+                    <label htmlFor="wizard-segment" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Narrow to a segment (optional)</label>
+                    <select id="wizard-segment" value={form.segment_id} onChange={(e) => setForm({ ...form, segment_id: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                      <option value="">Everyone in the selected lists</option>
+                      {segments.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.cached_count ?? 0} contacts)</option>)}
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Only list subscribers who also match the segment get this email.</p>
+                  </div>
+                )}
                 <CheckboxInput label="Use Blacklist" checked={form.use_blacklist} onChange={(v) => setForm({ ...form, use_blacklist: v })}
                   description="Exclude blacklisted contacts from this campaign" />
               </div>
@@ -659,6 +678,12 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
                         lists.filter((l) => form.selectedLists.includes(l.id)).map((l) => l.name).join(', ')}
                     </span>
                   </div>
+                  {form.segment_id && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">Segment</span>
+                      <span className="font-medium">{segments.find((s) => s.id === form.segment_id)?.name || 'Selected'}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Content</span>
                     <span className="font-medium">{form.body_html ? `${form.body_html.length} chars` : 'No content'}</span>
@@ -720,6 +745,9 @@ export default function CampaignWizard({ isOpen, onClose, onSaved, campaign }: C
                       )}
                     </div>
                   )}
+                  <CheckboxInput label="Send-time optimisation" checked={form.send_time_optimized}
+                    onChange={(v) => setForm({ ...form, send_time_optimized: v })}
+                    description="Deliver to each contact at the hour they usually open email, within the next 24 hours. Contacts without open history get your audience's most common hour." />
                 </div>
 
                 {/* Spam Score */}

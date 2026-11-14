@@ -22,7 +22,7 @@ export async function globalSearch(orgId: string, query: string): Promise<Search
       .limit(5),
 
     db('campaigns')
-      .where('org_id', orgId)
+      .where({ org_id: orgId, is_automation: false })
       .where(function () {
         this.whereILike('name', pattern)
           .orWhereILike('subject', pattern);

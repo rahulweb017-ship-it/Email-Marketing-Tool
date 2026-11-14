@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   Search, Send, Sparkles, Bot, User, Check, CheckCheck, Clock, AlertCircle, GraduationCap, UserPlus,
-  PauseCircle, PlayCircle, XCircle, MessagesSquare, FileText,
+  PauseCircle, PlayCircle, XCircle, MessagesSquare, FileText, Flame,
 } from 'lucide-react';
 import WhatsAppTabs from '../../components/whatsapp/WhatsAppTabs';
 import Modal from '../../components/ui/Modal';
@@ -19,9 +19,16 @@ import {
 const FILTERS = [
   { key: '', label: 'All' },
   { key: 'unread', label: 'Unread' },
+  { key: 'hot', label: 'Hot leads' },
   { key: 'needs_human', label: 'Needs a person' },
   { key: 'closed', label: 'Closed' },
 ];
+
+// Must match INBOX_INTENTS in apps/api/src/modules/ai/inbox.service.ts
+const INTENT_LABELS: Record<string, string> = {
+  sales_enquiry: 'Sales enquiry', pricing: 'Pricing', order_status: 'Order status', booking: 'Booking',
+  support: 'Support', complaint: 'Complaint', feedback: 'Feedback', spam: 'Spam', other: 'Other',
+};
 
 function displayName(c: Pick<WaConversation, 'first_name' | 'last_name' | 'profile_name' | 'phone_e164'>) {
   const n = [c.first_name, c.last_name].filter(Boolean).join(' ');
@@ -51,6 +58,7 @@ export default function WhatsAppInboxPage() {
   const selectedId = params.get('c');
   const [filter, setFilter] = useState(params.get('status') || '');
   const [search, setSearch] = useState('');
+  const [intent, setIntent] = useState('');
   const [conversations, setConversations] = useState<WaConversation[]>([]);
   const [active, setActive] = useState<WaConversation | null>(null);
   const [messages, setMessages] = useState<WaMessage[]>([]);
@@ -68,13 +76,15 @@ export default function WhatsAppInboxPage() {
     try {
       const q: Record<string, unknown> = { per_page: 50, search: search || undefined };
       if (filter === 'unread') q.unread = true;
+      else if (filter === 'hot') q.hot = true;
       else if (filter) q.status = filter;
+      if (intent) q.intent = intent;
       const res = await listConversations(q);
       setConversations(res.data);
     } catch (err) {
       addToast(apiError(err, 'Failed to load conversations'), 'error');
     }
-  }, [filter, search, addToast]);
+  }, [filter, search, intent, addToast]);
 
   const loadThread = useCallback(async (id: string, scroll = false) => {
     try {
@@ -170,6 +180,11 @@ export default function WhatsAppInboxPage() {
                 </button>
               ))}
             </div>
+            <select aria-label="Filter by topic" value={intent} onChange={(e) => setIntent(e.target.value)}
+              className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300">
+              <option value="">All topics (AI-labelled)</option>
+              {Object.entries(INTENT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
           </div>
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
@@ -189,8 +204,14 @@ export default function WhatsAppInboxPage() {
                     {c.unread_count > 0 && <span className="px-1.5 min-w-[1.25rem] text-center text-[11px] rounded-full bg-green-600 text-white">{c.unread_count}</span>}
                   </span>
                 </div>
-                <div className="text-[11px] text-gray-400 mt-0.5">{c.account_name}</div>
-              </button>
+                {(c.ai_intent || c.ai_hot_lead) && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {c.ai_hot_lead && <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-semibold rounded bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"><Flame className="h-3 w-3" /> Hot lead</span>}
+                    {c.ai_intent && <span className="px-1.5 py-0.5 text-[10px] rounded bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">{INTENT_LABELS[c.ai_intent] || c.ai_intent}</span>}
+                    {c.ai_sentiment === 'negative' && <span className="px-1.5 py-0.5 text-[10px] rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Unhappy</span>}
+                  </div>
+                )}
+                <div className="text-[11px] text-gray-400 mt-0.5">{c.account_name}</div>              </button>
             ))}
           </div>
         </div>
@@ -213,6 +234,7 @@ export default function WhatsAppInboxPage() {
                       ? <Link to={`/contacts/${active.contact_id}`} className="text-green-600 hover:underline">View contact</Link>
                       : <button onClick={() => { setSaveForm({ email: '', first_name: active.profile_name || '', consent: false }); setSaveOpen(true); }} className="flex items-center gap-1 text-green-600 hover:underline"><UserPlus className="h-3 w-3" /> Save as contact</button>}
                     {active.whatsapp_opt_out && <span className="text-red-500">Opted out</span>}
+                    {active.ai_summary && <span className="flex items-center gap-1 text-violet-600 dark:text-violet-300"><Sparkles className="h-3 w-3" /> {active.ai_summary}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

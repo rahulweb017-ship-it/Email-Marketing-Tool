@@ -31,18 +31,27 @@ interface SendBatchJob {
 async function sendBatch(job: Job<SendBatchJob>) {
   const { campaign_id, org_id, trace_ids, batch_index, total_batches } = job.data;
 
+  const campaign = await db('campaigns').where('id', campaign_id).first();
+  if (!campaign) return;
+  const isAutomation = !!campaign.is_automation;
+
+  // Automation step campaigns stay in 'sending' forever and serve many future
+  // sends, so a failure only cancels this batch instead of stopping the campaign.
+  const stopCampaign = async (reason: string) => {
+    if (isAutomation) {
+      await db('mailing_traces').whereIn('id', trace_ids).where('trace_status', 'outgoing')
+        .update({ trace_status: 'cancelled', failure_reason: reason.substring(0, 500) });
+      return;
+    }
+    await db('campaigns').where('id', campaign_id).update({ state: 'draft', failure_reason: reason, updated_at: new Date() });
+    await db('mailing_traces').where({ campaign_id, trace_status: 'outgoing' }).update({ trace_status: 'cancelled' });
+  };
+
   // Check org is still active
   const org = await db('organizations').where('id', org_id).select('status').first();
   if (!org || org.status !== 'active') {
     console.log(`Org ${org_id} suspended, stopping campaign ${campaign_id}`);
-    await db('campaigns').where('id', campaign_id).update({
-      state: 'draft',
-      failure_reason: 'Organization suspended',
-      updated_at: new Date(),
-    });
-    await db('mailing_traces')
-      .where({ campaign_id, trace_status: 'outgoing' })
-      .update({ trace_status: 'cancelled' });
+    await stopCampaign('Organization suspended');
     return;
   }
 
@@ -51,20 +60,11 @@ async function sendBatch(job: Job<SendBatchJob>) {
     await checkEmailLimit(org_id);
   } catch {
     console.log(`Org ${org_id} hit email limit, stopping campaign ${campaign_id}`);
-    await db('campaigns').where('id', campaign_id).update({
-      state: 'draft',
-      failure_reason: 'Monthly email limit reached. Upgrade your plan to send more emails.',
-      updated_at: new Date(),
-    });
-    await db('mailing_traces')
-      .where({ campaign_id, trace_status: 'outgoing' })
-      .update({ trace_status: 'cancelled' });
+    await stopCampaign('Monthly email limit reached. Upgrade your plan to send more emails.');
     return;
   }
 
-  // Check campaign still sending
-  const campaign = await db('campaigns').where('id', campaign_id).first();
-  if (!campaign || campaign.state !== 'sending') {
+  if (campaign.state !== 'sending') {
     console.log(`Campaign ${campaign_id} no longer sending, skipping batch ${batch_index}`);
     return;
   }
@@ -74,15 +74,8 @@ async function sendBatch(job: Job<SendBatchJob>) {
   try {
     provider = await getProvider(campaign.sending_config_id, org_id);
   } catch (err) {
-    console.error(`Campaign ${campaign_id}: provider setup failed, reverting to draft:`, err);
-    await db('campaigns').where('id', campaign_id).update({
-      state: 'draft',
-      failure_reason: `Email provider error: ${(err as Error).message}`,
-      updated_at: new Date(),
-    });
-    await db('mailing_traces')
-      .where({ campaign_id, trace_status: 'outgoing' })
-      .update({ trace_status: 'cancelled' });
+    console.error(`Campaign ${campaign_id}: provider setup failed:`, err);
+    await stopCampaign(`Email provider error: ${(err as Error).message}`);
     return;
   }
 
@@ -122,14 +115,7 @@ async function sendBatch(job: Job<SendBatchJob>) {
     // If too many consecutive errors, stop the campaign — something is fundamentally wrong
     if (consecutiveErrors >= 10) {
       console.error(`Campaign ${campaign_id}: ${consecutiveErrors} consecutive errors, stopping campaign`);
-      await db('campaigns').where('id', campaign_id).update({
-        state: 'draft',
-        failure_reason: `Sending stopped: ${consecutiveErrors} consecutive email failures. Check your email provider settings.`,
-        updated_at: new Date(),
-      });
-      await db('mailing_traces')
-        .where({ campaign_id, trace_status: 'outgoing' })
-        .update({ trace_status: 'cancelled' });
+      await stopCampaign(`Sending stopped: ${consecutiveErrors} consecutive email failures. Check your email provider settings.`);
       return;
     }
 
@@ -202,9 +188,22 @@ async function sendBatch(job: Job<SendBatchJob>) {
 
   console.log(`Campaign ${campaign_id} batch ${batch_index + 1}/${total_batches}: ${sentCount} sent, ${failedCount} failed`);
 
-  // Check if this was the last batch
-  if (batch_index === total_batches - 1) {
-    await finalizeCampaign(campaign_id);
+  if (isAutomation) {
+    await db('campaigns').where('id', campaign_id).update({
+      stat_sent: db.raw('stat_sent + ?', [sentCount]),
+      stat_failed: db.raw('stat_failed + ?', [failedCount]),
+      updated_at: new Date(),
+    });
+    await redis.del(`campaign:${campaign_id}:stats`);
+    return;
+  }
+
+  // Batches can be delayed (send-time optimisation) or finish out of order, so
+  // the campaign is done once no outgoing traces remain rather than after the last index.
+  const remaining = await db('mailing_traces').where({ campaign_id, trace_status: 'outgoing' }).count('* as n').first();
+  if (Number(remaining?.n || 0) === 0) {
+    const claimed = await redis.set(`campaign:${campaign_id}:finalized`, '1', 'EX', 60, 'NX');
+    if (claimed) await finalizeCampaign(campaign_id);
   }
 }
 

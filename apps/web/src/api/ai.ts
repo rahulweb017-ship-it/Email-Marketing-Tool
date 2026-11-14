@@ -27,6 +27,23 @@ export const aiSubjectLines = (input: { topic?: string; content_html?: string; c
 export const aiWriteSocial = (input: { brief: string; platforms: SocialPlatform[]; tone?: string; include_hashtags?: boolean }) =>
   api.post<{ posts: { platform: SocialPlatform; text: string }[] }>('/ai/social/write', input).then((r) => r.data);
 
+export interface SegmentDraft {
+  name: string; description: string;
+  filter_rules: { match: 'all' | 'any'; rules: { field: string; operator: string; value?: string }[] };
+  unsupported: string[];
+  preview: { count: number };
+}
+export const aiBuildSegment = (description: string) =>
+  api.post<SegmentDraft>('/ai/segment/build', { description }).then((r) => r.data);
+
+export const aiBuildAutomation = (input: { description: string; cta_url?: string }) =>
+  api.post<{ id: string; name: string; summary: string; notes: string[] }>('/ai/automation/build', input).then((r) => r.data);
+
+export interface CampaignInsights {
+  headline: string; summary: string; wins: string[]; issues: string[]; recommendations: string[]; generated_at?: string;
+}
+export const aiCampaignInsights = (campaignId: string) =>
+  api.post<CampaignInsights>(`/ai/campaigns/${campaignId}/insights`).then((r) => r.data);
 export function aiErrorMessage(err: unknown, fallback = 'The AI request failed'): string {
   return (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
 }

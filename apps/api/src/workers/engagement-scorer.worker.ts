@@ -1,6 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { db } from '../config/database.js';
 import { redis } from '../config/redis.js';
+import { bestSendHour } from '../shared/utils/send-time.js';
 
 const BATCH_SIZE = 500;
 
@@ -42,6 +43,7 @@ export async function recalculateEngagementScores(orgId?: string) {
         'contact_id',
         'sent_at',
         'first_open_at',
+        'last_open_at',
         'first_click_at',
         'trace_status',
       );
@@ -55,7 +57,7 @@ export async function recalculateEngagementScores(orgId?: string) {
     }
 
     // Calculate scores and batch update
-    const updates: Array<{ id: string; score: number }> = [];
+    const updates: Array<{ id: string; score: number; hour: number | null }> = [];
 
     for (const contactId of contactIds) {
       const contactTraces = tracesByContact.get(contactId) || [];
@@ -84,17 +86,24 @@ export async function recalculateEngagementScores(orgId?: string) {
       }
 
       // Clamp to 0 minimum
-      updates.push({ id: contactId, score: Math.max(0, Math.round(score)) });
+      const opens = contactTraces.flatMap((t) => {
+        const times = [t.first_open_at];
+        if (t.last_open_at && String(t.last_open_at) !== String(t.first_open_at)) times.push(t.last_open_at);
+        return times;
+      });
+      updates.push({ id: contactId, score: Math.max(0, Math.round(score)), hour: bestSendHour(opens) });
     }
 
     // Batch update using a single raw query for efficiency
     if (updates.length > 0) {
       const cases = updates.map((u) => `WHEN '${u.id}' THEN ${u.score}`).join(' ');
+      const hourCases = updates.map((u) => `WHEN '${u.id}' THEN ${u.hour === null ? 'NULL' : u.hour}`).join(' ');
       const ids = updates.map((u) => `'${u.id}'`).join(',');
 
       await db.raw(`
         UPDATE contacts
         SET engagement_score = CASE id ${cases} END,
+            best_send_hour = (CASE id ${hourCases} END)::smallint,
             engagement_updated_at = NOW()
         WHERE id IN (${ids})
       `);

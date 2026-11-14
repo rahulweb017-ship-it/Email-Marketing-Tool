@@ -41,6 +41,12 @@ const CONTACT_FIELDS = [
   { value: 'source', label: 'Source' },
 ];
 
+const ENGAGEMENT_FIELDS = [
+  { value: 'last_email_opened', label: 'Opened previous email' },
+  { value: 'last_email_clicked', label: 'Clicked previous email' },
+];
+const isEngagement = (f: string) => ENGAGEMENT_FIELDS.some((e) => e.value === f);
+
 const OPERATORS = [
   { value: 'eq', label: 'equals' },
   { value: 'neq', label: 'not equals' },
@@ -86,7 +92,7 @@ export default function ActivityConfigModal({ activity, onClose, onSaved }: Prop
 function ConditionConfig({ activity, onClose, onSaved }: Props) {
   const existingFilter = parseFilter(activity.activity_filter);
   const [match, setMatch] = useState<'all' | 'any'>(existingFilter.match || 'all');
-  const [rules, setRules] = useState<FilterRule[]>(existingFilter.rules.length > 0 ? existingFilter.rules : [{ field: 'email', operator: 'contains', value: '' }]);
+  const [rules, setRules] = useState<FilterRule[]>(existingFilter.rules.length > 0 ? existingFilter.rules : [{ field: 'last_email_opened', operator: 'eq', value: 'yes' }]);
   const [saving, setSaving] = useState(false);
 
   const addRule = () => setRules([...rules, { field: 'email', operator: 'eq', value: '' }]);
@@ -128,10 +134,23 @@ function ConditionConfig({ activity, onClose, onSaved }: Props) {
       <div className="space-y-3">
         {rules.map((rule, idx) => (
           <div key={idx} className="flex items-center gap-2">
-            <select value={rule.field} onChange={(e) => updateRule(idx, { field: e.target.value })}
+            <select value={rule.field}
+              onChange={(e) => updateRule(idx, isEngagement(e.target.value) ? { field: e.target.value, operator: 'eq', value: 'yes' } : { field: e.target.value })}
               className="text-sm border rounded px-2 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
-              {CONTACT_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              <optgroup label="Engagement">
+                {ENGAGEMENT_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </optgroup>
+              <optgroup label="Contact">
+                {CONTACT_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </optgroup>
             </select>
+            {isEngagement(rule.field) ? (
+              <select value={rule.value || 'yes'} onChange={(e) => updateRule(idx, { operator: 'eq', value: e.target.value })}
+                className="text-sm border rounded px-2 py-1.5 flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                <option value="yes">yes</option>
+                <option value="no">no</option>
+              </select>
+            ) : (<>
             <select value={rule.operator} onChange={(e) => updateRule(idx, { operator: e.target.value })}
               className="text-sm border rounded px-2 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
               {OPERATORS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -140,6 +159,7 @@ function ConditionConfig({ activity, onClose, onSaved }: Props) {
               <input type="text" value={rule.value} onChange={(e) => updateRule(idx, { value: e.target.value })}
                 placeholder="Value" className="text-sm border rounded px-2 py-1.5 flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
             )}
+            </>)}
             <button onClick={() => removeRule(idx)} className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
               disabled={rules.length <= 1}>
               <Trash2 className="h-4 w-4" />
