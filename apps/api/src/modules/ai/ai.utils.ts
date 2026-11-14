@@ -13,6 +13,9 @@ export const AI_CREDIT_COSTS = {
   automation_build: 5,
   campaign_insights: 2,
   inbox_classify: 1,
+  lead_qualify: 1,
+  copilot_message: 2,
+  image_generate: 10,
 } as const;
 
 export type AiFeature = keyof typeof AI_CREDIT_COSTS;

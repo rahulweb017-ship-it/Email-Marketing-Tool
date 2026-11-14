@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { authenticate, checkTenantStatus, requireRole } from '../auth/auth.middleware.js';
 import { getAiCreditUsage } from './ai.client.js';
-import { automationBuildSchema, brandProfileSchema, rewriteSchema, segmentBuildSchema, socialWriteSchema, subjectLinesSchema, writeEmailSchema } from './ai.schema.js';
+import { automationBuildSchema, brandProfileSchema, copilotChatSchema, copilotDraftSchema, rewriteSchema, segmentBuildSchema, socialWriteSchema, subjectLinesSchema, writeEmailSchema } from './ai.schema.js';
 import * as builders from './ai.builders.service.js';
 import * as aiService from './ai.service.js';
 import * as brand from './brand.service.js';
+import { copilotChat, createCopilotDraft } from './copilot.service.js';
+import { generateImage, generateImageSchema } from './image.service.js';
 
 export const aiRouter = Router();
 aiRouter.use(authenticate, checkTenantStatus);
@@ -45,6 +47,18 @@ aiRouter.post('/segment/build', async (req, res, next) => {
 
 aiRouter.post('/automation/build', async (req, res, next) => {
   try { res.status(201).json(await builders.buildAutomation(org(req), req.user!.id, automationBuildSchema.parse(req.body))); } catch (err) { next(err); }
+});
+
+aiRouter.post('/copilot', async (req, res, next) => {
+  try { res.json(await copilotChat(org(req), req.user!.id, copilotChatSchema.parse(req.body).messages)); } catch (err) { next(err); }
+});
+
+aiRouter.post('/copilot/draft', async (req, res, next) => {
+  try { res.status(201).json(await createCopilotDraft(org(req), req.user!.id, copilotDraftSchema.parse(req.body))); } catch (err) { next(err); }
+});
+
+aiRouter.post('/images/generate', async (req, res, next) => {
+  try { res.status(201).json(await generateImage(org(req), req.user!.id, generateImageSchema.parse(req.body))); } catch (err) { next(err); }
 });
 
 aiRouter.post('/campaigns/:id/insights', async (req, res, next) => {

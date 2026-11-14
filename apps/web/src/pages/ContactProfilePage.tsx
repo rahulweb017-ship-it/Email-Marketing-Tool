@@ -52,6 +52,8 @@ interface Contact {
   validation_checked_at: string | null;
   engagement_score: number;
   engagement_updated_at: string | null;
+  predicted_engagement?: number | null;
+  churn_risk?: number | null;
   created_at: string;
   tags?: Array<{ id: string; name: string; color: string | null }>;
   subscriptions?: Array<{ id: string; name: string; opt_out: boolean }>;
@@ -598,6 +600,20 @@ export default function ContactProfilePage() {
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
+                  {(contact.predicted_engagement != null || contact.churn_risk != null) && (
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="rounded-lg bg-gray-50 p-3">
+                        <p className="text-xs text-gray-500">Likely to engage next</p>
+                        <p className="text-xl font-semibold text-gray-900">{contact.predicted_engagement ?? '-'}<span className="text-sm text-gray-400">/100</span></p>
+                      </div>
+                      <div className="rounded-lg bg-gray-50 p-3">
+                        <p className="text-xs text-gray-500">Churn risk</p>
+                        <p className={`text-xl font-semibold ${(contact.churn_risk ?? 0) >= 70 ? 'text-red-600' : (contact.churn_risk ?? 0) >= 40 ? 'text-amber-600' : 'text-green-600'}`}>
+                          {contact.churn_risk ?? '-'}<span className="text-sm text-gray-400">/100</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   {contact.engagement_updated_at && (
                     <p className="text-xs text-gray-400 mt-2">
                       Updated {new Date(contact.engagement_updated_at).toLocaleString()}

@@ -13,6 +13,8 @@ export const SEGMENT_FIELDS: Record<string, { kind: FieldKind; label: string; co
   timezone: { kind: 'text', label: 'Timezone' },
   source: { kind: 'text', label: 'Source (how the contact was added)' },
   engagement_score: { kind: 'number', label: 'Engagement score (opens +1, clicks +3, bounces -10)' },
+  predicted_engagement: { kind: 'number', label: 'Predicted engagement (0-100, chance of opening the next email)' },
+  churn_risk: { kind: 'number', label: 'Churn risk (0-100, risk of going quiet)' },
   created_at: { kind: 'date', label: 'Date added' },
   last_open_at: { kind: 'date', label: 'Last email open' },
   last_click_at: { kind: 'date', label: 'Last email click' },

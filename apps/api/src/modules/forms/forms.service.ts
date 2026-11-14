@@ -3,6 +3,7 @@ import { db } from '../../config/database.js';
 import { env } from '../../config/env.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
 import { addSubscribers } from '../lists/list.service.js';
+import { upsertLead } from '../leads/leads.service.js';
 import { setContactCustomFieldValues } from '../custom-fields/custom-fields.service.js';
 import type { CreateFormInput, UpdateFormInput, SubmitFormInput } from './forms.schema.js';
 
@@ -171,6 +172,14 @@ export async function submitForm(formId: string, input: SubmitFormInput) {
   await db('signup_forms').where('id', formId).update({
     submit_count: db.raw('submit_count + 1'),
   });
+
+  await upsertLead(orgId, {
+    source: 'email',
+    source_detail: `Signup form: ${form.name}`.slice(0, 200),
+    name: [input.first_name, input.last_name].filter(Boolean).join(' ') || undefined,
+    email: emailNormalized,
+    contact_id: contact.id,
+  }).catch((err) => console.error('[forms] could not record lead', err.message));
 
   return {
     success: true,

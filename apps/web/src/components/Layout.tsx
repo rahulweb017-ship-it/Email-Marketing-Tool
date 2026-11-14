@@ -7,7 +7,7 @@ import { useThemeStore } from '../stores/theme.store';
 import {
   LayoutDashboard, Users, ListChecks, Send, FileText,
   Workflow, Settings, LogOut, Mail, Globe, ChevronDown,
-  Sun, Moon, Monitor, Search, Filter, Zap, Share2, MessageCircle,
+  Sun, Moon, Monitor, Search, Filter, Zap, Share2, MessageCircle, Sparkles, Inbox,
 } from 'lucide-react';
 import clsx from 'clsx';
 import ToastContainer from './ui/Toast';
@@ -17,6 +17,8 @@ import ImpersonationBanner from './ImpersonationBanner';
 
 const navItems = [
   { path: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { path: '/copilot', labelKey: 'nav.copilot', icon: Sparkles },
+  { path: '/leads', labelKey: 'nav.leads', icon: Inbox },
   { path: '/contacts', labelKey: 'nav.contacts', icon: Users },
   { path: '/lists', labelKey: 'nav.lists', icon: ListChecks },
   { path: '/campaigns', labelKey: 'nav.campaigns', icon: Send },

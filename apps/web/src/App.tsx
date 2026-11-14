@@ -16,6 +16,8 @@ import AutomationEditorPage from './pages/AutomationEditorPage';
 import SettingsPage from './pages/SettingsPage';
 import ContactProfilePage from './pages/ContactProfilePage';
 import SegmentsPage from './pages/SegmentsPage';
+import LeadsPage from './pages/LeadsPage';
+import CopilotPage from './pages/CopilotPage';
 import CampaignAnalyticsPage from './pages/CampaignAnalyticsPage';
 import CampaignComparePage from './pages/CampaignComparePage';
 import TransactionalPage from './pages/TransactionalPage';
@@ -156,6 +158,8 @@ export default function App() {
             <Layout>
               <Routes>
                 <Route path="/" element={<DashboardPage />} />
+                <Route path="/copilot" element={<CopilotPage />} />
+                <Route path="/leads" element={<LeadsPage />} />
                 <Route path="/contacts" element={<ContactsPage />} />
                 <Route path="/contacts/:id" element={<ContactProfilePage />} />
                 <Route path="/lists" element={<ListsPage />} />

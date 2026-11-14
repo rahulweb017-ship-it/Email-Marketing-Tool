@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Upload, Search, Trash2, Link2, FileText, Film, Check, Loader2, ImageIcon } from 'lucide-react';
+import { Upload, Search, Trash2, Link2, FileText, Film, Check, Loader2, ImageIcon, Sparkles } from 'lucide-react';
 import Modal from '../ui/Modal';
+import AiImageGeneratorModal from '../ai/AiImageGeneratorModal';
 import { useToastStore } from '../../stores/toast.store';
 import { listMedia, uploadMedia, deleteMedia, type MediaAsset } from '../../api/media';
 
@@ -32,6 +33,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect, kinds, ti
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [generateOpen, setGenerateOpen] = useState(false);
 
   // Callers usually pass an inline array, so key the effect on its contents, not identity
   const kindsKey = kinds?.join(',') || '';
@@ -117,6 +119,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect, kinds, ti
   };
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -162,6 +165,13 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect, kinds, ti
             onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ''; }}
           />
         </div>
+
+        {(!kindsKey || kindsKey.split(',').includes('image')) && (
+          <button type="button" onClick={() => setGenerateOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-medium text-violet-700 hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-900/20 dark:text-violet-200">
+            <Sparkles className="h-4 w-4" /> Create an image with AI
+          </button>
+        )}
 
         {uploads.map((u) => (
           <div key={u.name} className="flex items-center gap-3 text-sm">
@@ -242,5 +252,15 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect, kinds, ti
         </div>
       </div>
     </Modal>
+    <AiImageGeneratorModal
+      isOpen={generateOpen}
+      onClose={() => setGenerateOpen(false)}
+      onCreated={(asset) => {
+        setAssets((a) => [asset, ...a.filter((x) => x.id !== asset.id)]);
+        setSelectedId(asset.id);
+        addToast('Image created and saved to your library', 'success');
+      }}
+    />
+    </>
   );
 }

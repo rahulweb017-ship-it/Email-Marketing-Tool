@@ -40,6 +40,22 @@ async function reserveCredits(orgId: string, cost: number): Promise<void> {
 
 export interface CreditCharge { orgId: string; userId?: string | null; feature: AiFeature }
 
+/** Runs a non-Claude AI call (e.g. image generation) against the organisation's credits, refunding on failure. */
+export async function withCredits<T>(charge: CreditCharge, fn: () => Promise<T>): Promise<T> {
+  const cost = AI_CREDIT_COSTS[charge.feature];
+  await reserveCredits(charge.orgId, cost);
+  try {
+    const result = await fn();
+    await db('ai_usage_events').insert({
+      org_id: charge.orgId, user_id: charge.userId ?? null, feature: charge.feature, credits: cost,
+    }).catch(() => undefined);
+    return result;
+  } catch (err) {
+    await redis.decrby(creditKey(charge.orgId), cost).catch(() => undefined);
+    throw err;
+  }
+}
+
 /** One structured Claude call, charged to the organisation's AI credits (refunded if the call fails). */
 export async function generate<T extends z.ZodType>(opts: {
   charge: CreditCharge;

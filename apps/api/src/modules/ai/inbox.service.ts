@@ -4,6 +4,9 @@ import { db } from '../../config/database.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
 import { generate } from './ai.client.js';
 import { brandBlock } from './brand.service.js';
+import { upsertLead } from '../leads/leads.service.js';
+
+const LEAD_INTENTS = new Set(['sales_enquiry', 'pricing', 'booking']);
 
 export const INBOX_INTENTS = ['sales_enquiry', 'pricing', 'order_status', 'booking', 'support', 'complaint', 'feedback', 'spam', 'other'] as const;
 
@@ -57,4 +60,25 @@ Intents: sales_enquiry (interested in products/services), pricing (asks about pr
     ai_summary: result.summary.slice(0, 300),
     ai_classified_at: new Date(),
   });
+
+  // Buying conversations go to the leads inbox, where they are qualified and followed up.
+  if (result.hot_lead || LEAD_INTENTS.has(result.intent)) {
+    const contact = conversation.contact_id
+      ? await db('contacts').where('id', conversation.contact_id).first('first_name', 'last_name', 'email', 'company_name')
+      : null;
+    const contactName = contact ? [contact.first_name, contact.last_name].filter(Boolean).join(' ') : '';
+    await upsertLead(conversation.org_id, {
+      source: 'whatsapp',
+      source_detail: 'WhatsApp inbox',
+      external_ref: conversation.id,
+      name: contactName || conversation.profile_name || undefined,
+      email: contact?.email || undefined,
+      phone: conversation.phone_e164,
+      company: contact?.company_name || undefined,
+      message: result.summary.slice(0, 1000),
+      contact_id: conversation.contact_id,
+      conversation_id: conversation.id,
+      qualify: true,
+    });
+  }
 }

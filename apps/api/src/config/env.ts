@@ -58,4 +58,7 @@ export const env = {
   WHATSAPP_AI_MODEL: process.env.WHATSAPP_AI_MODEL || 'claude-opus-5-5',
   // Model for platform-wide AI features (email, subject lines, social, WhatsApp)
   AI_MODEL: process.env.AI_MODEL || process.env.WHATSAPP_AI_MODEL || 'claude-opus-5-5',
+  // AI image generation (OpenAI image API)
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  OPENAI_IMAGE_MODEL: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
 } as const;

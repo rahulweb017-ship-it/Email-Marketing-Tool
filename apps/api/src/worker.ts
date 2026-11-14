@@ -12,6 +12,7 @@ import { createOutgoingWebhookWorker } from './workers/outgoing-webhook.worker.j
 import { createEngagementScorerWorker } from './workers/engagement-scorer.worker.js';
 import { createSocialPublisherWorker } from './workers/social-publisher.worker.js';
 import { createSocialMetricsWorker } from './workers/social-metrics.worker.js';
+import { createLeadQualifyWorker } from './workers/lead-qualify.worker.js';
 import { createWhatsAppAiWorker, createWhatsAppCampaignWorker, createWhatsAppInboundWorker } from './workers/whatsapp.worker.js';
 
 // Worker intervals
@@ -44,6 +45,7 @@ const workers = [
   createWhatsAppCampaignWorker(),
   createWhatsAppInboundWorker(),
   createWhatsAppAiWorker(),
+  createLeadQualifyWorker(),
 ];
 
 // Add error logging to all workers

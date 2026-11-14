@@ -47,6 +47,19 @@ export const automationBuildSchema = z.object({
   cta_url: z.string().url().max(500).optional(),
 });
 
+export const copilotChatSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string().trim().min(1).max(4000),
+  })).min(1).max(30),
+});
+
+export const copilotDraftSchema = z.object({
+  kind: z.enum(['segment', 'automation', 'email_campaign']),
+  title: z.string().trim().max(200).default(''),
+  brief: z.string().trim().min(10).max(2000),
+});
+
 export const socialWriteSchema = z.object({
   brief: z.string().min(5).max(2000),
   platforms: z.array(z.enum(['twitter', 'facebook', 'linkedin', 'instagram'])).min(1).max(4),

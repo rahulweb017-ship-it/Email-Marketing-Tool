@@ -1,4 +1,5 @@
 import api from './client';
+import type { MediaAsset } from './media';
 
 export interface AiUsage { period: string; used: number; limit: number; costs: Record<string, number> }
 
@@ -47,3 +48,17 @@ export const aiCampaignInsights = (campaignId: string) =>
 export function aiErrorMessage(err: unknown, fallback = 'The AI request failed'): string {
   return (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
 }
+
+export type CopilotDraftKind = 'segment' | 'automation' | 'email_campaign';
+export interface CopilotDraft { kind: CopilotDraftKind; title: string; brief: string }
+export interface CopilotReply { answer: string; drafts: CopilotDraft[]; follow_ups: string[] }
+export interface CopilotTurn { role: 'user' | 'assistant'; content: string }
+export const aiCopilot = (messages: CopilotTurn[]) =>
+  api.post<CopilotReply>('/ai/copilot', { messages }).then((r) => r.data);
+export const aiCopilotDraft = (draft: CopilotDraft) =>
+  api.post<{ kind: CopilotDraftKind; id: string; name: string; url: string; notes: string[]; count?: number }>('/ai/copilot/draft', draft).then((r) => r.data);
+
+export type ImageSize = 'square' | 'landscape' | 'portrait';
+export type ImageStyle = 'photo' | 'illustration' | '3d' | 'minimal';
+export const aiGenerateImage = (input: { prompt: string; size: ImageSize; style: ImageStyle; use_brand?: boolean }) =>
+  api.post<MediaAsset>('/ai/images/generate', input, { timeout: 200_000 }).then((r) => r.data);

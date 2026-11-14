@@ -26,6 +26,8 @@ const FIELDS: { value: string; label: string; kind: Kind }[] = [
   { value: 'timezone', label: 'Timezone', kind: 'text' },
   { value: 'source', label: 'Source', kind: 'text' },
   { value: 'engagement_score', label: 'Engagement score', kind: 'number' },
+  { value: 'predicted_engagement', label: 'Predicted engagement (0-100)', kind: 'number' },
+  { value: 'churn_risk', label: 'Churn risk (0-100)', kind: 'number' },
   { value: 'created_at', label: 'Date added', kind: 'date' },
   { value: 'last_open_at', label: 'Last email open', kind: 'date' },
   { value: 'last_click_at', label: 'Last email click', kind: 'date' },

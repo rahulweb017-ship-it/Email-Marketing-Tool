@@ -21,6 +21,7 @@ export const whatsappCampaignQueue = new Queue('whatsapp-campaign', defaultOpts)
 export const whatsappInboundQueue = new Queue('whatsapp-inbound', defaultOpts);
 export const whatsappAiQueue = new Queue('whatsapp-ai-reply', defaultOpts);
 export const whatsappSessionQueue = new Queue('whatsapp-session', defaultOpts);
+export const leadQualifyQueue = new Queue('lead-qualify', defaultOpts);
 
 export const queues = {
   emailSend: emailSendQueue,
@@ -41,4 +42,5 @@ export const queues = {
   whatsappInbound: whatsappInboundQueue,
   whatsappAi: whatsappAiQueue,
   whatsappSession: whatsappSessionQueue,
+  leadQualify: leadQualifyQueue,
 };

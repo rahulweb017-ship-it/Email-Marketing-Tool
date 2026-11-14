@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Sparkles, Bot, CheckCheck, Upload, Palette, Workflow, TrendingUp, ShieldCheck, Gauge, Lock, HeartHandshake,
-  ChevronDown, Mail, MessageCircle, Share2, ArrowUpRight, BookOpen, UserCheck, Zap, PenLine, BarChart3, Layers, Flame,
+  ChevronDown, Mail, MessageCircle, Share2, ArrowUpRight, UserCheck, Zap, PenLine, BarChart3, Layers, Flame,
+  ImageIcon, MessagesSquare, Inbox,
 } from 'lucide-react';
 import clsx from 'clsx';
 import SiteLayout from '../../components/site/SiteLayout';
@@ -265,14 +266,18 @@ function AiOrb() {
 
 function AiSection() {
   const points = [
+    { icon: MessagesSquare, title: 'Your marketing copilot', text: 'Ask how things are going and get answers from your real numbers, plus drafts you create in one click.' },
     { icon: PenLine, title: 'Writes your emails', text: 'Turn a one-line brief into a complete email, plus subject lines with scores.' },
     { icon: Share2, title: 'Writes your posts', text: 'One idea becomes a post for X, Facebook and LinkedIn, sized for each.' },
+    { icon: ImageIcon, title: 'Creates your images', text: 'Describe a banner or post image and get it in seconds, saved to your media library.' },
     { icon: Bot, title: 'Replies 24/7', text: 'Answers WhatsApp questions instantly, even at night and on holidays.' },
     { icon: Workflow, title: 'Builds segments and journeys', text: 'Describe an audience or a follow-up sequence in plain words and get it ready to review.' },
     { icon: BarChart3, title: 'Explains your results', text: 'Every campaign summarised in plain language, with what to try next.' },
     { icon: Flame, title: 'Sorts your inbox', text: 'WhatsApp chats labelled by topic and mood, with hot leads flagged first.' },
+    { icon: Inbox, title: 'Qualifies your leads', text: 'Leads from every channel scored hot, warm or cold, with a follow-up ready to send.' },
+    { icon: TrendingUp, title: 'Predicts who will drift', text: 'Churn risk for every contact, so you win people back before they go quiet.' },
     { icon: Layers, title: 'One brand voice', text: 'Describe your business once. Every AI feature writes like your brand.' },
-    { icon: BookOpen, title: 'Learns your business', text: 'Add your products, prices and policies. The AI answers from your facts.' },
+
     { icon: UserCheck, title: 'Knows when to hand over', text: 'Tricky or sensitive chats go to your team, with the full history.' },
   ];
   return (
