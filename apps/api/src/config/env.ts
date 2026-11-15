@@ -49,6 +49,13 @@ export const env = {
   // Organization scopes (w_organization_social etc.) require LinkedIn's Community Management API product
   LINKEDIN_SCOPES: process.env.LINKEDIN_SCOPES || 'openid profile w_member_social',
   SOCIAL_OAUTH_CALLBACK_URL: process.env.SOCIAL_OAUTH_CALLBACK_URL || '',
+  // YouTube (Google OAuth client)
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  THREADS_APP_ID: process.env.THREADS_APP_ID || '',
+  THREADS_APP_SECRET: process.env.THREADS_APP_SECRET || '',
+  PINTEREST_APP_ID: process.env.PINTEREST_APP_ID || '',
+  PINTEREST_APP_SECRET: process.env.PINTEREST_APP_SECRET || '',
 
   // WhatsApp (Meta Cloud API webhooks) — app secret falls back to the Facebook app secret
   WHATSAPP_APP_SECRET: process.env.WHATSAPP_APP_SECRET || process.env.FACEBOOK_APP_SECRET || '',

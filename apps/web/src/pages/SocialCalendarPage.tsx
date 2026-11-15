@@ -6,6 +6,7 @@ import api from '../api/client';
 import { useToastStore } from '../stores/toast.store';
 import PlatformIcon from '../components/social/PlatformIcon';
 import PostStatusBadge from '../components/social/PostStatusBadge';
+import SocialNav from '../components/social/SocialNav';
 
 interface CalendarPost {
   id: string;
@@ -112,6 +113,8 @@ export default function SocialCalendarPage() {
           <Plus className="h-4 w-4" /> New Post
         </button>
       </div>
+
+      <SocialNav />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar Grid */}

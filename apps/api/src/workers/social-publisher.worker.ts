@@ -21,6 +21,8 @@ async function processPublishJob(job: Job<PublishSocialPostJob>) {
     .select(
       'social_post_accounts.id as post_account_id',
       'social_post_accounts.account_id',
+      'social_post_accounts.content_override',
+      'social_post_accounts.first_comment',
       'social_accounts.platform',
       'social_accounts.access_token_encrypted',
       'social_accounts.refresh_token_encrypted',
@@ -33,7 +35,7 @@ async function processPublishJob(job: Job<PublishSocialPostJob>) {
     return;
   }
 
-  const post = await db('social_posts').where('id', post_id).first();
+  const post = await db('social_posts').where({ id: post_id, org_id }).first();
   if (!post) return;
 
   // Get media for this post
@@ -65,8 +67,10 @@ async function processPublishJob(job: Job<PublishSocialPostJob>) {
       // Upload media to platform if needed
       const mediaIds: string[] = [];
       const mediaUrls: string[] = [];
+      const mediaTypes: string[] = [];
       for (const m of media) {
         mediaUrls.push(m.file_url);
+        mediaTypes.push(m.file_type);
         try {
           const platformMediaId = await provider.uploadMedia(tokens.access_token, m.file_url, m.file_type);
           mediaIds.push(platformMediaId);
@@ -77,9 +81,10 @@ async function processPublishJob(job: Job<PublishSocialPostJob>) {
 
       // Publish
       const result = await provider.publish(tokens.access_token, {
-        content: post.content,
+        content: pa.content_override || post.content,
         media_ids: mediaIds.length > 0 ? mediaIds : undefined,
         media_urls: mediaUrls.length > 0 ? mediaUrls : undefined,
+        media_types: mediaTypes.length > 0 ? mediaTypes : undefined,
       });
 
       if (result.success) {
@@ -90,6 +95,14 @@ async function processPublishJob(job: Job<PublishSocialPostJob>) {
           published_at: new Date(),
         });
         successCount++;
+        if (pa.first_comment && result.platform_post_id && provider.postComment) {
+          try {
+            await provider.postComment(tokens.access_token, result.platform_post_id, pa.first_comment);
+          } catch (err: any) {
+            // The post itself is live; a failed first comment must not mark it failed
+            console.warn(`[social-publisher] First comment failed for ${pa.platform}: ${err.message}`);
+          }
+        }
       } else {
         throw new Error(result.error || 'Publish returned unsuccessful');
       }
@@ -103,11 +116,14 @@ async function processPublishJob(job: Job<PublishSocialPostJob>) {
     }
   }
 
-  // Update post aggregate status
+  // Aggregate over every account row so a retry counts earlier successes too
+  const all = await db('social_post_accounts').where('post_id', post_id).select('status');
+  const published = all.filter((r: any) => r.status === 'published').length;
+  const failed = all.filter((r: any) => r.status === 'failed').length;
   let postStatus: string;
-  if (failCount === 0) {
+  if (failed === 0) {
     postStatus = 'published';
-  } else if (successCount === 0) {
+  } else if (published === 0) {
     postStatus = 'failed';
   } else {
     postStatus = 'partially_failed';
@@ -115,7 +131,7 @@ async function processPublishJob(job: Job<PublishSocialPostJob>) {
 
   await db('social_posts').where('id', post_id).update({
     status: postStatus,
-    published_at: successCount > 0 ? new Date() : null,
+    published_at: published > 0 ? (post.published_at || new Date()) : null,
     updated_at: new Date(),
   });
 

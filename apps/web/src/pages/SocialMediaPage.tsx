@@ -1,249 +1,270 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Plus, Share2, Calendar, Users, ArrowRight, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import api from '../api/client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Plus, Settings2, Pencil, Copy, Trash2, RotateCcw, Check, X, ExternalLink, Inbox, Film, AlertCircle,
+} from 'lucide-react';
 import { useToastStore } from '../stores/toast.store';
+import { useAuthStore } from '../stores/auth.store';
 import PostStatusBadge from '../components/social/PostStatusBadge';
-import PlatformIcon from '../components/social/PlatformIcon';
-import { CardGridSkeleton } from '../components/ui/Skeleton';
-import EmptyState from '../components/ui/EmptyState';
+import { ChannelAvatar } from '../components/social/PlatformIcon';
+import SocialNav from '../components/social/SocialNav';
+import QueueSettingsModal from '../components/social/QueueSettingsModal';
+import { TagChip } from '../components/social/TagPicker';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import {
+  listSocialAccounts, listSocialPosts, getPostCounts, listTags, deleteSocialPost, duplicateSocialPost,
+  retrySocialPost, approveSocialPost, rejectSocialPost, apiErrorMessage, canApproveRole,
+  type PostTab, type SocialAccount, type SocialPost, type SocialTag, type PostCounts,
+} from '../api/social';
 
-interface SocialAccount {
-  id: string;
-  platform: string;
-  account_name: string;
-  account_avatar_url?: string;
-  is_active: boolean;
-  last_error?: string;
-}
+const TABS: Array<{ id: PostTab; label: string }> = [
+  { id: 'queue', label: 'Queue' },
+  { id: 'drafts', label: 'Drafts' },
+  { id: 'approvals', label: 'Approvals' },
+  { id: 'sent', label: 'Sent' },
+];
 
-interface SocialPost {
-  id: string;
-  content: string;
-  status: string;
-  scheduled_at?: string;
-  published_at?: string;
-  created_at: string;
-  accounts: Array<{
-    platform: string;
-    account_name: string;
-    status: string;
-  }>;
+const EMPTY: Record<PostTab, string> = {
+  queue: 'Nothing scheduled yet. Add a post to your queue and it goes out at your next posting time.',
+  drafts: 'No drafts. Start a post and save it for later.',
+  approvals: 'No posts are waiting for approval.',
+  sent: 'Published posts will show up here.',
+};
+
+function postDate(p: SocialPost, tab: PostTab): string | null {
+  if (tab === 'sent') return p.published_at || p.updated_at;
+  if (tab === 'drafts') return p.updated_at;
+  return p.scheduled_at || p.created_at;
 }
 
 export default function SocialMediaPage() {
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
   const addToast = useToastStore((s) => s.addToast);
-  const [accounts, setAccounts] = useState<SocialAccount[]>([]);
-  const [posts, setPosts] = useState<SocialPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const user = useAuthStore((s) => s.user);
+  const isApprover = canApproveRole(user);
 
-  const fetchData = useCallback(async () => {
+  const tab = (TABS.find((t) => t.id === params.get('tab'))?.id || 'queue') as PostTab;
+  const [accountId, setAccountId] = useState('');
+  const [tagId, setTagId] = useState('');
+  const [accounts, setAccounts] = useState<SocialAccount[]>([]);
+  const [tags, setTags] = useState<SocialTag[]>([]);
+  const [posts, setPosts] = useState<SocialPost[]>([]);
+  const [counts, setCounts] = useState<PostCounts>({ queue: 0, drafts: 0, approvals: 0, sent: 0 });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<SocialPost | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    listSocialAccounts().then((r) => setAccounts(r.data?.data || [])).catch(() => {});
+    listTags().then(setTags).catch(() => {});
+  }, []);
+
+  const load = useCallback(async () => {
     setLoading(true);
+    const filters: Record<string, string> = {};
+    if (accountId) filters.account_id = accountId;
+    if (tagId) filters.tag = tagId;
     try {
-      const [accountsRes, postsRes] = await Promise.all([
-        api.get('/social/accounts'),
-        api.get('/social/posts', { params: { per_page: '10' } }),
+      const [list, c] = await Promise.all([
+        listSocialPosts({ ...filters, tab, page: String(page), per_page: '25' }),
+        getPostCounts(filters),
       ]);
-      setAccounts(accountsRes.data.data);
-      setPosts(postsRes.data.data);
+      setPosts(list.data?.data || []);
+      setTotalPages(list.data?.total_pages || 1);
+      setCounts(c);
     } catch {
-      addToast('Failed to load social media data', 'error');
+      addToast('Could not load posts', 'error');
     } finally {
       setLoading(false);
     }
-  }, [addToast]);
+  }, [tab, accountId, tagId, page, addToast]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => { setPage(1); }, [tab, accountId, tagId]);
 
-  const activeAccounts = accounts.filter(a => a.is_active);
-  const scheduledCount = posts.filter(p => p.status === 'scheduled').length;
-  const publishedCount = posts.filter(p => p.status === 'published').length;
-  const failedCount = posts.filter(p => ['failed', 'partially_failed'].includes(p.status)).length;
+  const groups = useMemo(() => {
+    const map = new Map<string, SocialPost[]>();
+    for (const p of posts) {
+      const d = postDate(p, tab);
+      const key = d ? new Date(d).toDateString() : 'No date';
+      map.set(key, [...(map.get(key) || []), p]);
+    }
+    return [...map.entries()];
+  }, [posts, tab]);
 
-  if (loading) return <CardGridSkeleton />;
+  const act = async (id: string, fn: () => Promise<unknown>, ok: string) => {
+    setBusy(id);
+    try {
+      await fn();
+      addToast(ok, 'success');
+      await load();
+    } catch (err) {
+      addToast(apiErrorMessage(err, 'Something went wrong'), 'error');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const reject = (p: SocialPost) => {
+    const note = window.prompt('What should be changed? (shown to the author)') ?? null;
+    if (note === null) return;
+    act(p.id, () => rejectSocialPost(p.id, note), 'Sent back to drafts');
+  };
+
+  const tagById = (id: string) => tags.find((t) => t.id === id);
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Social Media</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage accounts and publish to multiple platforms</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Plan, approve and publish posts across your channels</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/social/calendar')}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
-            <Calendar className="h-4 w-4" /> Calendar
+        <div className="flex items-center gap-2">
+          <button onClick={() => setQueueOpen(true)} className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+            <Settings2 className="h-4 w-4" /> Queue settings
           </button>
-          <button
-            onClick={() => navigate('/social/compose')}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm"
-          >
+          <button onClick={() => navigate('/social/compose')} className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700">
             <Plus className="h-4 w-4" /> New Post
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{activeAccounts.length}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Connected Accounts</p>
-            </div>
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{scheduledCount}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Scheduled</p>
-            </div>
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{publishedCount}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Published</p>
-            </div>
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{failedCount}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Failed</p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+      <SocialNav />
 
-      {/* Connected Accounts */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Connected Accounts</h2>
-          <button
-            onClick={() => navigate('/social/accounts')}
-            className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
-          >
-            Manage <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1">
+          {TABS.map((t) => (
+            <button key={t.id} onClick={() => setParams({ tab: t.id })}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium ${tab === t.id ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}`}>
+              {t.label}
+              <span className={`rounded-full px-1.5 text-xs ${t.id === 'approvals' && counts.approvals > 0 ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>{counts[t.id]}</span>
+            </button>
+          ))}
         </div>
-        {accounts.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <EmptyState
-              icon={Share2}
-              title="No accounts connected"
-              description="Connect your social media accounts to start posting"
-              action={{ label: 'Connect Account', onClick: () => navigate('/social/accounts') }}
-            />
-          </div>
-        ) : (
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {accounts.map(account => (
-              <motion.div
-                key={account.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex-shrink-0 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 min-w-[200px]"
-              >
-                <div className="flex items-center gap-3">
-                  {account.account_avatar_url ? (
-                    <img src={account.account_avatar_url} alt="" className="w-10 h-10 rounded-full" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                      <PlatformIcon platform={account.platform} size={20} />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{account.account_name}</p>
-                    <div className="flex items-center gap-1.5">
-                      <PlatformIcon platform={account.platform} size={12} />
-                      <span className={`w-1.5 h-1.5 rounded-full ${account.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1">
+            <button onClick={() => setAccountId('')} className={`rounded-full px-2 py-1 text-xs ${!accountId ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>All</button>
+            {accounts.map((a) => (
+              <button key={a.id} onClick={() => setAccountId(accountId === a.id ? '' : a.id)} className={`rounded-full p-0.5 ${accountId === a.id ? 'ring-2 ring-primary-500' : ''}`} title={a.account_name}>
+                <ChannelAvatar platform={a.platform} name={a.account_name} avatarUrl={a.account_avatar_url} size={28} dimmed={!!accountId && accountId !== a.id} />
+              </button>
             ))}
           </div>
-        )}
+          {tags.length > 0 && (
+            <select value={tagId} onChange={(e) => setTagId(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
+              <option value="">All tags</option>
+              {tags.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          )}
+        </div>
       </div>
 
-      {/* Recent Posts */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Posts</h2>
+      {loading ? (
+        <div className="space-y-3">{[0, 1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />)}</div>
+      ) : posts.length === 0 ? (
+        <div className="flex flex-col items-center rounded-xl border border-dashed border-gray-300 bg-white py-14 text-center dark:border-gray-700 dark:bg-gray-800">
+          <Inbox className="mb-3 h-10 w-10 text-gray-300" />
+          <p className="max-w-sm text-sm text-gray-500 dark:text-gray-400">{accounts.length === 0 ? 'Connect a channel to start posting.' : EMPTY[tab]}</p>
+          <button onClick={() => navigate(accounts.length === 0 ? '/social/accounts' : '/social/compose')} className="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700">
+            {accounts.length === 0 ? 'Connect a channel' : 'Create a post'}
+          </button>
         </div>
-        {posts.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <EmptyState
-              icon={Share2}
-              title="No posts yet"
-              description="Create your first social media post"
-              action={{ label: 'Create Post', onClick: () => navigate('/social/compose') }}
-            />
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {posts.map((post, i) => (
-                <motion.div
-                  key={post.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.03 }}
-                  onClick={() => navigate(`/social/compose/${post.id}`)}
-                  className="p-4 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 dark:text-gray-100 line-clamp-2">{post.content}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-1">
-                          {post.accounts?.map((acc, j) => (
-                            <PlatformIcon key={j} platform={acc.platform} size={14} />
-                          ))}
-                        </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {post.scheduled_at
-                            ? `Scheduled: ${new Date(post.scheduled_at).toLocaleDateString()}`
-                            : post.published_at
-                              ? `Published: ${new Date(post.published_at).toLocaleDateString()}`
-                              : new Date(post.created_at).toLocaleDateString()
-                          }
-                        </span>
+      ) : (
+        <div className="space-y-6">
+          {groups.map(([day, list]) => (
+            <div key={day}>
+              <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {day === 'No date' ? day : new Date(day).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+              </h3>
+              <div className="space-y-3">
+                {list.map((p) => {
+                  const d = postDate(p, tab);
+                  const thumb = p.media?.[0];
+                  const link = p.accounts?.find((a) => a.platform_post_url)?.platform_post_url;
+                  const errors = (p.accounts || []).filter((a) => a.status === 'failed' && a.error_message);
+                  const disabled = busy === p.id;
+                  return (
+                    <div key={p.id} className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                      <div className="w-20 shrink-0 text-sm">
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{d ? new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}</p>
+                        {p.queued && tab !== 'sent' && <p className="text-xs text-gray-400">Queue</p>}
                       </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <div className="flex -space-x-1">
+                            {(p.accounts || []).map((a) => <ChannelAvatar key={a.id} platform={a.platform} name={a.account_name} avatarUrl={a.account_avatar_url} size={26} />)}
+                          </div>
+                          <span className="truncate text-sm font-medium text-gray-800 dark:text-gray-200">{(p.accounts || []).map((a) => a.account_name).join(', ') || 'No channels yet'}</span>
+                          <PostStatusBadge status={p.status} />
+                          {(p.tags || []).map((id) => { const t = tagById(id); return t ? <TagChip key={id} tag={t} /> : null; })}
+                        </div>
+                        <p className="line-clamp-3 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{p.content || <span className="italic text-gray-400">No text</span>}</p>
+                        {p.rejection_note && p.status === 'draft' && (
+                          <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">Changes requested: {p.rejection_note}</p>
+                        )}
+                        {errors.map((a) => (
+                          <p key={a.id} className="mt-2 flex items-start gap-1 text-xs text-red-600 dark:text-red-400"><AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {a.account_name}: {a.error_message}</p>
+                        ))}
+                        {tab === 'approvals' && p.created_by_name && <p className="mt-2 text-xs text-gray-400">Submitted by {p.created_by_name}</p>}
+                        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                          {['draft', 'scheduled', 'pending_approval'].includes(p.status) && (
+                            <button onClick={() => navigate(`/social/compose/${p.id}`)} className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"><Pencil className="h-3.5 w-3.5" /> Edit</button>
+                          )}
+                          {tab === 'approvals' && isApprover && (
+                            <>
+                              <button disabled={disabled} onClick={() => act(p.id, () => approveSocialPost(p.id), 'Post approved')} className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-2.5 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50"><Check className="h-3.5 w-3.5" /> Approve</button>
+                              <button disabled={disabled} onClick={() => reject(p)} className="inline-flex items-center gap-1 rounded-lg border border-red-300 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-700 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /> Reject</button>
+                            </>
+                          )}
+                          {['failed', 'partially_failed'].includes(p.status) && (
+                            <button disabled={disabled} onClick={() => act(p.id, () => retrySocialPost(p.id), 'Retrying failed channels')} className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"><RotateCcw className="h-3.5 w-3.5" /> Retry</button>
+                          )}
+                          <button disabled={disabled} onClick={() => act(p.id, () => duplicateSocialPost(p.id), 'Copied to drafts')} className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"><Copy className="h-3.5 w-3.5" /> Duplicate</button>
+                          {link && (
+                            <a href={link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"><ExternalLink className="h-3.5 w-3.5" /> Go to post</a>
+                          )}
+                          {p.status !== 'publishing' && (
+                            <button onClick={() => setDeleteTarget(p)} className="ml-auto p-1 text-gray-400 hover:text-red-600" aria-label="Delete post"><Trash2 className="h-4 w-4" /></button>
+                          )}
+                        </div>
+                      </div>
+                      {thumb && (
+                        <div className="hidden h-24 w-32 shrink-0 overflow-hidden rounded-lg bg-gray-900 sm:flex sm:items-center sm:justify-center">
+                          {thumb.file_type === 'video'
+                            ? <video src={thumb.file_url} className="h-full w-full object-cover" muted preload="metadata" />
+                            : <img src={thumb.file_url} alt={thumb.alt_text || ''} className="h-full w-full object-cover" />}
+                          {thumb.file_type === 'video' && <Film className="absolute h-5 w-5 text-white" />}
+                        </div>
+                      )}
                     </div>
-                    <PostStatusBadge status={post.status} />
-                  </div>
-                </motion.div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          ))}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 text-sm">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded border px-3 py-1 disabled:opacity-40 dark:border-gray-600 dark:text-gray-200">Previous</button>
+              <span className="text-gray-500">Page {page} of {totalPages}</span>
+              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className="rounded border px-3 py-1 disabled:opacity-40 dark:border-gray-600 dark:text-gray-200">Next</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <QueueSettingsModal isOpen={queueOpen} onClose={() => setQueueOpen(false)} accounts={accounts} />
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        title="Delete post?"
+        message="This removes the post from Rabbit Growth. Posts already published stay on the social network."
+        onConfirm={() => { const t = deleteTarget; setDeleteTarget(null); if (t) act(t.id, () => deleteSocialPost(t.id), 'Post deleted'); }}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

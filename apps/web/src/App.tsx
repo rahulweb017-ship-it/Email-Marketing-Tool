@@ -32,6 +32,7 @@ import SocialMediaPage from './pages/SocialMediaPage';
 import SocialAccountsPage from './pages/SocialAccountsPage';
 import SocialPostComposer from './pages/SocialPostComposer';
 import SocialCalendarPage from './pages/SocialCalendarPage';
+import SocialCreatePage from './pages/SocialCreatePage';
 import WhatsAppDashboardPage from './pages/whatsapp/WhatsAppDashboardPage';
 import WhatsAppAccountsPage from './pages/whatsapp/WhatsAppAccountsPage';
 import WhatsAppInboxPage from './pages/whatsapp/WhatsAppInboxPage';
@@ -177,6 +178,7 @@ export default function App() {
                 <Route path="/social/compose" element={<SocialPostComposer />} />
                 <Route path="/social/compose/:id" element={<SocialPostComposer />} />
                 <Route path="/social/calendar" element={<SocialCalendarPage />} />
+                <Route path="/social/create" element={<SocialCreatePage />} />
                 <Route path="/whatsapp" element={<WhatsAppDashboardPage />} />
                 <Route path="/whatsapp/inbox" element={<WhatsAppInboxPage />} />
                 <Route path="/whatsapp/campaigns" element={<WhatsAppCampaignsPage />} />

@@ -111,6 +111,18 @@ export class FacebookProvider implements SocialProvider {
       access_token: accessToken,
     };
 
+    const videoIdx = (payload.media_types || []).findIndex((t) => t === 'video');
+    if (videoIdx >= 0 && payload.media_urls?.[videoIdx]) {
+      const vRes = await fetch(`${GRAPH_API}/${pageId}/videos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_url: payload.media_urls[videoIdx], description: payload.content, access_token: accessToken }),
+      });
+      if (!vRes.ok) throw new SocialApiError(`Facebook video publish failed: ${await vRes.text()}`, vRes.status, 'facebook');
+      const v = await vRes.json() as { id: string };
+      return { success: true, platform_post_id: v.id, platform_post_url: `https://www.facebook.com/${v.id}` };
+    }
+
     // If media, use photos endpoint for single image
     if (payload.media_ids && payload.media_ids.length > 0) {
       if (payload.media_ids.length === 1) {
@@ -207,6 +219,15 @@ export class FacebookProvider implements SocialProvider {
       impressions,
       clicks: 0,
     };
+  }
+
+  async postComment(accessToken: string, platformPostId: string, text: string): Promise<void> {
+    const res = await fetch(`${GRAPH_API}/${platformPostId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, access_token: accessToken }),
+    });
+    if (!res.ok) throw new SocialApiError(`Facebook comment failed: ${await res.text()}`, res.status, 'facebook');
   }
 
   async verifyToken(accessToken: string): Promise<boolean> {

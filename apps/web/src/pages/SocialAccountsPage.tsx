@@ -6,6 +6,8 @@ import api from '../api/client';
 import { useToastStore } from '../stores/toast.store';
 import PlatformIcon from '../components/social/PlatformIcon';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import SocialNav from '../components/social/SocialNav';
+import { listPlatforms, type PlatformInfo } from '../api/social';
 import { CardGridSkeleton } from '../components/ui/Skeleton';
 
 interface SocialAccount {
@@ -27,6 +29,9 @@ const PLATFORMS = [
   { id: 'facebook', name: 'Facebook', description: 'Publish to your Facebook Page' },
   { id: 'instagram', name: 'Instagram', description: 'Share photos to your Business account' },
   { id: 'linkedin', name: 'LinkedIn', description: 'Post to your LinkedIn profile' },
+  { id: 'youtube', name: 'YouTube', description: 'Upload videos to your channel' },
+  { id: 'threads', name: 'Threads', description: 'Post text, images and videos to Threads' },
+  { id: 'pinterest', name: 'Pinterest', description: 'Create pins on your first board' },
 ];
 
 export default function SocialAccountsPage() {
@@ -40,6 +45,9 @@ export default function SocialAccountsPage() {
   const [showConnect, setShowConnect] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<SocialAccount | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [platformInfo, setPlatformInfo] = useState<PlatformInfo[]>([]);
+
+  useEffect(() => { listPlatforms().then(setPlatformInfo).catch(() => {}); }, []);
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -74,8 +82,8 @@ export default function SocialAccountsPage() {
       const { data } = await api.post('/social/accounts/connect', { platform });
       // Redirect to OAuth URL
       window.location.href = data.auth_url;
-    } catch {
-      addToast('Failed to initiate connection', 'error');
+    } catch (err: unknown) {
+      addToast((err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to initiate connection', 'error');
       setConnecting(null);
     }
   };
@@ -125,6 +133,8 @@ export default function SocialAccountsPage() {
           <Plus className="h-4 w-4" /> Connect Account
         </button>
       </div>
+
+      <SocialNav />
 
       {loading ? <CardGridSkeleton /> : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -214,6 +224,7 @@ export default function SocialAccountsPage() {
               <div className="space-y-3">
                 {PLATFORMS.map(platform => {
                   const connected = accounts.some(a => a.platform === platform.id);
+                  const notConfigured = platformInfo.find(p => p.id === platform.id)?.configured === false;
                   return (
                     <button
                       key={platform.id}
@@ -226,6 +237,9 @@ export default function SocialAccountsPage() {
                         <p className="font-medium text-gray-900 dark:text-gray-100">{platform.name}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{platform.description}</p>
                       </div>
+                      {notConfigured && (
+                        <span className="text-xs text-gray-400">Not set up on server</span>
+                      )}
                       {connected && (
                         <span className="text-xs text-green-600 dark:text-green-400 font-medium">Connected</span>
                       )}

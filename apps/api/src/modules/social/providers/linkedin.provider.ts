@@ -258,6 +258,18 @@ export class LinkedInProvider implements SocialProvider {
     };
   }
 
+  async postComment(accessToken: string, platformPostId: string, text: string): Promise<void> {
+    const profileRes = await fetch(`${LI_API}/userinfo`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+    if (!profileRes.ok) throw new SocialApiError('Failed to get LinkedIn profile', profileRes.status, 'linkedin');
+    const profile = await profileRes.json() as { sub: string };
+    const res = await fetch(`${LI_API}/socialActions/${encodeURIComponent(platformPostId)}/comments`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'X-Restli-Protocol-Version': '2.0.0' },
+      body: JSON.stringify({ actor: `urn:li:person:${profile.sub}`, message: { text } }),
+    });
+    if (!res.ok) throw new SocialApiError(`LinkedIn comment failed: ${await res.text()}`, res.status, 'linkedin');
+  }
+
   async verifyToken(accessToken: string): Promise<boolean> {
     const res = await fetch(`${LI_API}/userinfo`, {
       headers: { 'Authorization': `Bearer ${accessToken}` },

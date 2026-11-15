@@ -71,16 +71,21 @@ export const PAGE_HELP: Record<string, PageHelp> = {
   },
   '/social': {
     title: 'Social media',
-    summary: 'Write and schedule posts for your social accounts from one place, and see how they perform.',
-    steps: ['Connect accounts', 'Compose a post (AI can help)', 'Schedule it on the calendar'],
+    summary: 'Your publishing hub. Queue shows scheduled posts, Drafts holds unfinished ones, Approvals lists posts waiting for an owner or admin, and Sent shows what went out. Use Queue settings to choose the times "Next available" posts go out.',
+    steps: ['Connect channels', 'Set your posting times in Queue settings', 'Create a post and add it to the queue'],
+  },
+  '/social/create': {
+    title: 'Ideas and templates',
+    summary: 'Collect post ideas on a board, drag them between To Do, In Progress and Done, and turn any idea into a draft post. Templates store text you reuse often.',
+    steps: ['Add an idea', 'Drag it across the board as you work', 'Click "Create post" to open it in the composer'],
   },
   '/social/accounts': {
-    title: 'Social accounts',
-    summary: 'Connect your X, Facebook, Instagram and LinkedIn accounts so you can post to them.',
+    title: 'Social channels',
+    summary: 'Connect X, Facebook, Instagram, LinkedIn, YouTube, Threads and Pinterest so you can post to them.',
   },
   '/social/compose': {
     title: 'New post',
-    summary: 'Write one post, pick the accounts to publish to, and post now or schedule it.',
+    summary: 'Pick channels, write once (or customize per network), add media from your library, and choose Next available, Prioritize, Now or a set time. Posts by team members other than owners and admins go to Approvals first.',
   },
   '/social/compose/:id': {
     title: 'Edit post',

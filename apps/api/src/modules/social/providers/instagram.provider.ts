@@ -131,6 +131,35 @@ export class InstagramProvider implements SocialProvider {
       throw new SocialApiError('Failed to resolve Instagram account', meRes.status, 'instagram');
     }
 
+    const videoIdx = (payload.media_types || []).findIndex((t) => t === 'video');
+    if (videoIdx >= 0) {
+      const cRes = await fetch(`${GRAPH_API}/${igUserId}/media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ media_type: 'REELS', video_url: payload.media_urls[videoIdx], caption: payload.content }),
+      });
+      if (!cRes.ok) throw new SocialApiError(`Instagram video container failed: ${await cRes.text()}`, cRes.status, 'instagram');
+      const { id: containerId } = await cRes.json() as { id: string };
+      // Video containers must finish processing before they can be published
+      let ready = false;
+      for (let i = 0; i < 40 && !ready; i++) {
+        await new Promise((res) => setTimeout(res, 3000));
+        const sRes = await fetch(`${GRAPH_API}/${containerId}?fields=status_code`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        const s = sRes.ok ? await sRes.json() as { status_code?: string } : {};
+        if (s.status_code === 'FINISHED') ready = true;
+        if (s.status_code === 'ERROR' || s.status_code === 'EXPIRED') throw new SocialApiError('Instagram could not process the video', 400, 'instagram');
+      }
+      if (!ready) throw new SocialApiError('Instagram video processing timed out', 504, 'instagram');
+      const pRes = await fetch(`${GRAPH_API}/${igUserId}/media_publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ creation_id: containerId }),
+      });
+      if (!pRes.ok) throw new SocialApiError(`Instagram publish failed: ${await pRes.text()}`, pRes.status, 'instagram');
+      const pData = await pRes.json() as { id: string };
+      return { success: true, platform_post_id: pData.id, platform_post_url: `https://www.instagram.com/p/${pData.id}/` };
+    }
+
     if (payload.media_urls.length === 1) {
       // Single image post
       const containerRes = await fetch(`${GRAPH_API}/${igUserId}/media`, {
@@ -260,6 +289,15 @@ export class InstagramProvider implements SocialProvider {
       impressions,
       clicks: 0,
     };
+  }
+
+  async postComment(accessToken: string, platformPostId: string, text: string): Promise<void> {
+    const res = await fetch(`${GRAPH_API}/${platformPostId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+      body: JSON.stringify({ message: text }),
+    });
+    if (!res.ok) throw new SocialApiError(`Instagram comment failed: ${await res.text()}`, res.status, 'instagram');
   }
 
   async verifyToken(accessToken: string): Promise<boolean> {

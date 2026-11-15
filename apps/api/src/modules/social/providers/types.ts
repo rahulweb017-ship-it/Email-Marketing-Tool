@@ -2,6 +2,8 @@ export interface SocialPostPayload {
   content: string;
   media_urls?: string[];
   media_ids?: string[];
+  /** Parallel to media_urls: 'image' | 'video' | 'gif'. */
+  media_types?: string[];
 }
 
 export interface SocialPublishResult {
@@ -42,12 +44,14 @@ export interface SocialProvider {
   readonly characterLimit: number;
 
   getAuthUrl(state: string, redirectUri: string): string;
-  exchangeCode(code: string, redirectUri: string): Promise<OAuthTokenResponse>;
+  exchangeCode(code: string, redirectUri: string, codeVerifier?: string): Promise<OAuthTokenResponse>;
   refreshToken(refreshToken: string): Promise<TokenRefreshResult>;
   publish(accessToken: string, payload: SocialPostPayload): Promise<SocialPublishResult>;
   uploadMedia(accessToken: string, fileUrl: string, mimeType: string): Promise<string>;
   getMetrics(accessToken: string, platformPostId: string): Promise<SocialMetrics>;
   verifyToken(accessToken: string): Promise<boolean>;
+  /** Optional: post a comment under a published post (used for "first comment"). */
+  postComment?(accessToken: string, platformPostId: string, text: string): Promise<void>;
 }
 
 export class SocialApiError extends Error {
