@@ -42,6 +42,7 @@ import WhatsAppAIPage from './pages/whatsapp/WhatsAppAIPage';
 import EnquiriesPage from './pages/super-admin/EnquiriesPage';
 import HomePage from './pages/site/HomePage';
 import AboutPage from './pages/site/AboutPage';
+import LegalPage from './pages/site/LegalPage';
 import FeaturesPage from './pages/site/FeaturesPage';
 import FeatureDetailPage from './pages/site/FeatureDetailPage';
 import ContactPage from './pages/site/ContactPage';
@@ -100,6 +101,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomeRoute />} />
       <Route path="/about" element={<AboutPage />} />
+          <Route path="/legal/:slug" element={<LegalPage />} />
       <Route path="/features" element={<FeaturesPage />} />
       <Route path="/features/:slug" element={<FeatureDetailPage />} />
       <Route path="/contact" element={<ContactPage />} />

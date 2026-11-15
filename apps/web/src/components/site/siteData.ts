@@ -5,11 +5,8 @@ import { Mail, MessageCircle, Sparkles, Workflow, Users, BarChart3, Share2, Code
 export const SITE = {
   name: 'Rabbit Growth',
   tagline: 'The AI-powered all-in-one marketing platform',
-  email: 'hello@yourcompany.com',
-  salesEmail: 'sales@yourcompany.com',
-  phone: '+91 00000 00000',
-  whatsapp: '+91 00000 00000',
-  address: 'Your office address, City, State 000000, India',
+  email: 'contact@rabbitgrowth.si',
+  salesEmail: 'contact@rabbitgrowth.si',
   hours: 'Monday to Saturday, 10:00 to 19:00 IST',
 };
 

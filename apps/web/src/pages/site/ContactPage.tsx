@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Clock, MessageCircle, Send, CheckCircle2, Loader2 } from 'lucide-react';
+import { Mail, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import SiteLayout from '../../components/site/SiteLayout';
 import { Field, GradientText, inputClass, PageHero, Reveal, usePageTitle } from '../../components/site/ui';
 import { SITE } from '../../components/site/siteData';
@@ -35,10 +35,6 @@ export default function ContactPage() {
 
   const cards = [
     { icon: Mail, label: 'Email us', value: SITE.email, href: `mailto:${SITE.email}` },
-    { icon: Phone, label: 'Call us', value: SITE.phone, href: `tel:${SITE.phone.replace(/\s/g, '')}` },
-    { icon: MessageCircle, label: 'WhatsApp', value: SITE.whatsapp, href: `https://wa.me/${SITE.whatsapp.replace(/\D/g, '')}` },
-    { icon: MapPin, label: 'Visit us', value: SITE.address },
-    { icon: Clock, label: 'Working hours', value: SITE.hours },
   ];
 
   return (

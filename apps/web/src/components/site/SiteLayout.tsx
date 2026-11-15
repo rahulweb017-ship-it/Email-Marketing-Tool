@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Menu, X, Mail, Phone, MapPin } from 'lucide-react';
+import { LEGAL_DOCS } from './legalData';
+import { ChevronDown, Menu, X, Mail } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/auth.store';
 import { FEATURES, SITE } from './siteData';
@@ -164,7 +165,7 @@ function Header() {
 function Footer() {
   return (
     <footer className="relative border-t border-slate-200 bg-slate-50">
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-2 lg:grid-cols-5">
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-2 lg:grid-cols-6">
         <div className="lg:col-span-2">
           <Logo />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-600">
@@ -172,8 +173,6 @@ function Footer() {
           </p>
           <div className="mt-6 space-y-2 text-sm text-slate-600">
             <a href={`mailto:${SITE.email}`} className="flex items-center gap-2 hover:text-brand-700"><Mail className="h-4 w-4" /> {SITE.email}</a>
-            <a href={`tel:${SITE.phone.replace(/\s/g, '')}`} className="flex items-center gap-2 hover:text-brand-700"><Phone className="h-4 w-4" /> {SITE.phone}</a>
-            <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {SITE.address}</p>
           </div>
         </div>
 
@@ -201,6 +200,14 @@ function Footer() {
             <li><Link to="/contact" className="text-slate-600 hover:text-brand-700">Contact</Link></li>
             <li><Link to="/register" className="text-slate-600 hover:text-brand-700">Book a demo</Link></li>
             <li><Link to="/login" className="text-slate-600 hover:text-brand-700">Customer login</Link></li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900">Legal</h3>
+          <ul className="mt-4 space-y-2.5 text-sm">
+            {LEGAL_DOCS.map((d) => (
+              <li key={d.slug}><Link to={`/legal/${d.slug}`} className="text-slate-600 hover:text-brand-700">{d.title.replace(' and Anti-Spam Policy','')}</Link></li>
+            ))}
           </ul>
         </div>
       </div>
