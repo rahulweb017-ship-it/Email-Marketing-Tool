@@ -2,6 +2,8 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { authenticate, checkTenantStatus } from '../auth/auth.middleware.js';
 import { db } from '../../config/database.js';
+import { getHub } from './analytics.service.js';
+import { clampDays } from './analytics.utils.js';
 
 export const analyticsRouter = Router();
 analyticsRouter.use(authenticate, checkTenantStatus);
@@ -52,6 +54,15 @@ analyticsRouter.get('/overview', async (req: Request, res: Response, next: NextF
       avg_open_rate: totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(2) : '0.00',
       avg_click_rate: totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(2) : '0.00',
     });
+  } catch (err) { next(err); }
+});
+
+/** GET /api/v1/analytics/hub?days=30 - All-channel dashboard (email, WhatsApp, social, leads, automations) */
+analyticsRouter.get('/hub', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const orgId = req.user!.org_id;
+    if (!orgId) return res.status(403).json({ error: 'Organization context required' });
+    res.json(await getHub(orgId, clampDays(req.query.days)));
   } catch (err) { next(err); }
 });
 
