@@ -54,7 +54,7 @@ const starters: StarterTemplate[] = [
     </table>`,
   },
   {
-    id: 'event', name: 'Event Invite', description: 'Webinars and meetups', icon: Calendar, gradient: 'from-violet-500 to-purple-600',
+    id: 'event', name: 'Event Invite', description: 'Webinars and meetups', icon: Calendar, gradient: 'from-rose-500 to-rose-600',
     html: `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;">
       <tr><td style="background:linear-gradient(135deg,#7c3aed,#9333ea);padding:40px;text-align:center;"><p style="color:#ddd6fe;font-size:14px;text-transform:uppercase;letter-spacing:2px;margin:0;">You're Invited</p><h1 style="color:#fff;margin:12px 0;font-size:28px;">Event Name</h1><p style="color:#c4b5fd;font-size:16px;margin:0;">January 15, 2025 &bull; 2:00 PM EST</p></td></tr>
       <tr><td style="padding:40px;"><p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px;">Join us for an exciting event. Learn from experts and connect with peers.</p><table width="100%" style="background:#f9fafb;border-radius:8px;"><tr><td style="padding:20px;"><p style="margin:0;font-weight:bold;">Details</p><p style="color:#6b7280;margin:8px 0 0;font-size:14px;">Location: Online via Zoom<br/>Duration: 1 hour<br/>Speaker: Jane Doe</p></td></tr></table></td></tr>

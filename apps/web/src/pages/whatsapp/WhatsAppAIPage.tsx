@@ -139,7 +139,7 @@ export default function WhatsAppAIPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{k.title}</span>
-                        {k.source === 'taught_from_reply' && <span className="flex items-center gap-0.5 text-[10px] text-purple-600"><GraduationCap className="h-3 w-3" /> taught</span>}
+                        {k.source === 'taught_from_reply' && <span className="flex items-center gap-0.5 text-[10px] text-rose-600"><GraduationCap className="h-3 w-3" /> taught</span>}
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 whitespace-pre-wrap line-clamp-3">{k.content}</p>
                     </div>

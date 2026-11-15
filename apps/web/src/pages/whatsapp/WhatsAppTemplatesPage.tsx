@@ -122,7 +122,7 @@ export default function WhatsAppTemplatesPage() {
           <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Message</span>
-              <button onClick={() => setAiOpen(true)} className="flex items-center gap-1 text-xs text-purple-600 hover:underline"><Sparkles className="h-3.5 w-3.5" /> Write with AI</button>
+              <button onClick={() => setAiOpen(true)} className="flex items-center gap-1 text-xs text-rose-600 hover:underline"><Sparkles className="h-3.5 w-3.5" /> Write with AI</button>
             </div>
             <TextArea label="" name="body" rows={7} value={form.body} onChange={(v) => setForm({ ...form, body: v })}
               placeholder="Hi {{first_name|there}}! Our Diwali sale is live: 20% off everything until Sunday. Reply YES to get the catalogue." />

@@ -48,14 +48,14 @@ export default function CampaignInsightsPanel({ campaignId, initial, initialAt, 
     );
 
   return (
-    <div className="mb-8 rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/60 dark:bg-violet-950/30 p-6">
+    <div className="mb-8 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-950/30 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-violet-900 dark:text-violet-100">
-          <Sparkles className="h-5 w-5 text-violet-600" /> Rabbit AI insights
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-rose-900 dark:text-rose-100">
+          <Sparkles className="h-5 w-5 text-rose-600" /> Rabbit AI insights
         </h2>
         {canRun && (
           <button type="button" onClick={run} disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
             {insights ? <RefreshCw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} /> : <Sparkles className="h-4 w-4" />}
             {busy ? 'Analysing...' : insights ? 'Refresh' : 'Explain my results'}
           </button>
@@ -78,7 +78,7 @@ export default function CampaignInsightsPanel({ campaignId, initial, initialAt, 
           <div className="grid gap-4 md:grid-cols-3">
             {section('What worked', insights.wins, ThumbsUp, 'text-green-700 dark:text-green-400')}
             {section('Watch out for', insights.issues, AlertTriangle, 'text-amber-700 dark:text-amber-400')}
-            {section('Try next', insights.recommendations, Lightbulb, 'text-violet-700 dark:text-violet-300')}
+            {section('Try next', insights.recommendations, Lightbulb, 'text-rose-700 dark:text-rose-300')}
           </div>
           {at && <p className="text-xs text-gray-500">Generated {new Date(at).toLocaleString()}</p>}
         </div>

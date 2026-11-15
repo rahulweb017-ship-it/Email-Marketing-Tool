@@ -206,8 +206,8 @@ export default function OutgoingWebhooksPanel() {
               <div className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Webhook className="h-5 w-5 text-purple-600" />
+                    <div className="p-2 bg-rose-100 rounded-lg">
+                      <Webhook className="h-5 w-5 text-rose-600" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ export default function OutgoingWebhooksPanel() {
                 {/* Events */}
                 <div className="flex gap-1.5 flex-wrap mt-3">
                   {webhook.events.map((event) => (
-                    <span key={event} className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded font-medium">
+                    <span key={event} className="text-[10px] px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded font-medium">
                       {event}
                     </span>
                   ))}

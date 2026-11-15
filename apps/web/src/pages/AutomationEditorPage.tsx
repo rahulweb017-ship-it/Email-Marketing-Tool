@@ -31,7 +31,7 @@ interface Activity {
 const PALETTE_ITEMS = [
   { type: 'email', label: 'Send Email', icon: Mail, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/30', trigger: 'activity_completed', activityType: 'email' },
   { type: 'wait', label: 'Wait', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', trigger: 'activity_completed', activityType: 'wait' },
-  { type: 'condition', label: 'Condition', icon: GitBranch, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/30', trigger: 'activity_completed', activityType: 'condition' },
+  { type: 'condition', label: 'Condition', icon: GitBranch, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/30', trigger: 'activity_completed', activityType: 'condition' },
   { type: 'action', label: 'Action', icon: Cog, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800', trigger: 'activity_completed', activityType: 'action' },
 ];
 

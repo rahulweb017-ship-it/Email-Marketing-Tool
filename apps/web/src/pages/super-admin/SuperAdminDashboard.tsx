@@ -33,8 +33,8 @@ export default function SuperAdminDashboard() {
   const cards = [
     { label: 'Total Organizations', value: stats.total_organizations, icon: Building2, color: 'text-blue-500' },
     { label: 'Active Organizations', value: stats.active_organizations, icon: Building2, color: 'text-green-500' },
-    { label: 'Total Users', value: stats.total_users, icon: Users, color: 'text-indigo-500' },
-    { label: 'Emails Sent (This Month)', value: stats.emails_sent_this_month.toLocaleString(), icon: Mail, color: 'text-purple-500' },
+    { label: 'Total Users', value: stats.total_users, icon: Users, color: 'text-primary-500' },
+    { label: 'Emails Sent (This Month)', value: stats.emails_sent_this_month.toLocaleString(), icon: Mail, color: 'text-rose-500' },
     { label: 'Suspended', value: stats.suspended_organizations, icon: AlertTriangle, color: 'text-red-500' },
   ];
 

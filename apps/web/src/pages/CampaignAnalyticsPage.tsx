@@ -378,7 +378,7 @@ export default function CampaignAnalyticsPage() {
       <>
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <CountUpCard value={campaign.stat_sent} label="Sent" icon={Send} color="bg-indigo-500" delay={0} />
+        <CountUpCard value={campaign.stat_sent} label="Sent" icon={Send} color="bg-primary-500" delay={0} />
         <CountUpCard value={campaign.stat_opened} label="Opened" icon={Eye} color="bg-amber-500" rate={openRate} delay={0.08} />
         <CountUpCard value={campaign.stat_clicked} label="Clicked" icon={MousePointerClick} color="bg-green-500" rate={clickRate} delay={0.16} />
         <CountUpCard value={campaign.stat_bounced} label="Bounced" icon={AlertTriangle} color="bg-red-500" delay={0.24} />
@@ -522,7 +522,7 @@ export default function CampaignAnalyticsPage() {
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-indigo-500 rounded-full"
+                        className="h-full bg-primary-500 rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: maxGeoCount > 0 ? `${(g.count / maxGeoCount) * 100}%` : '0%' }}
                         transition={{ delay: 0.45 + i * 0.04, duration: 0.5 }}

@@ -102,7 +102,7 @@ interface Stats {
 const eventIcons: Record<string, { icon: typeof Mail; color: string }> = {
   sent: { icon: Send, color: 'text-blue-500 bg-blue-50' },
   opened: { icon: Eye, color: 'text-green-500 bg-green-50' },
-  clicked: { icon: MousePointerClick, color: 'text-purple-500 bg-purple-50' },
+  clicked: { icon: MousePointerClick, color: 'text-rose-500 bg-rose-50' },
   bounced: { icon: AlertTriangle, color: 'text-red-500 bg-red-50' },
   replied: { icon: MessageSquare, color: 'text-teal-500 bg-teal-50' },
   unsubscribed: { icon: Mail, color: 'text-amber-500 bg-amber-50' },
@@ -643,11 +643,11 @@ export default function ContactProfilePage() {
                   <p className="text-xs text-gray-500">Opened</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-purple-600">{stats.total_clicked}</p>
+                  <p className="text-2xl font-bold text-rose-600">{stats.total_clicked}</p>
                   <p className="text-xs text-gray-500">Clicked</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-indigo-600">{stats.open_rate}%</p>
+                  <p className="text-2xl font-bold text-primary-600">{stats.open_rate}%</p>
                   <p className="text-xs text-gray-500">Open Rate</p>
                 </div>
                 <div className="col-span-2 text-center pt-2 border-t">

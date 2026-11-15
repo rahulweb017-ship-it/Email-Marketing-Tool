@@ -36,7 +36,7 @@ export default function AiAutomationBuilderModal({ isOpen, onClose }: { isOpen: 
   const footer = result ? (
     <div className="flex justify-end gap-3">
       <button onClick={() => setResult(null)} className="px-4 py-2 border dark:border-gray-600 rounded-lg text-sm dark:text-gray-300">Build another</button>
-      <button onClick={() => navigate(`/automations/${result.id}/edit`)} className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm">Review workflow</button>
+      <button onClick={() => navigate(`/automations/${result.id}/edit`)} className="px-4 py-2 bg-rose-600 text-white rounded-lg text-sm">Review workflow</button>
     </div>
   ) : (
     <div className="flex items-center justify-between gap-3">
@@ -44,7 +44,7 @@ export default function AiAutomationBuilderModal({ isOpen, onClose }: { isOpen: 
       <div className="flex gap-3">
         <button onClick={close} className="px-4 py-2 border dark:border-gray-600 rounded-lg text-sm dark:text-gray-300">Cancel</button>
         <button onClick={run} disabled={busy || description.trim().length < 10}
-          className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm disabled:opacity-50">
+          className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm disabled:opacity-50">
           <Sparkles className="h-4 w-4" /> {busy ? 'Building (about 30s)...' : 'Build workflow'}
         </button>
       </div>
@@ -77,7 +77,7 @@ export default function AiAutomationBuilderModal({ isOpen, onClose }: { isOpen: 
             <div className="mt-2 flex flex-wrap gap-2">
               {EXAMPLES.map((e) => (
                 <button key={e} type="button" onClick={() => setDescription(e)}
-                  className="rounded-full border border-violet-200 dark:border-violet-800 px-3 py-1 text-xs text-violet-700 dark:text-violet-300 text-left">
+                  className="rounded-full border border-rose-200 dark:border-rose-800 px-3 py-1 text-xs text-rose-700 dark:text-rose-300 text-left">
                   {e.split(':')[0]}
                 </button>
               ))}

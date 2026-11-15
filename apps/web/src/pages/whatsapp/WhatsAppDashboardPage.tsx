@@ -114,9 +114,9 @@ export default function WhatsAppDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Kpi icon={Send} label="Messages sent" value={num(o.sent)} hint={o.queued ? `${num(o.queued)} waiting in queue` : undefined} tone="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" delay={0} />
         <Kpi icon={CheckCheck} label="Delivered" value={pct(o.delivery_rate)} hint={`${num(o.delivered)} messages`} tone="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" delay={0.03} />
-        <Kpi icon={Eye} label="Read" value={pct(o.read_rate)} hint={`${num(o.read)} messages`} tone="bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400" delay={0.06} />
+        <Kpi icon={Eye} label="Read" value={pct(o.read_rate)} hint={`${num(o.read)} messages`} tone="bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400" delay={0.06} />
         <Kpi icon={MessageCircle} label="Messages received" value={num(o.received)} hint={`${num(o.conversations_with_replies)} people wrote in`} tone="bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400" delay={0.09} />
-        <Kpi icon={Reply} label="Campaign reply rate" value={pct(o.campaign_reply_rate)} tone="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400" delay={0.12} />
+        <Kpi icon={Reply} label="Campaign reply rate" value={pct(o.campaign_reply_rate)} tone="bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400" delay={0.12} />
         <Kpi icon={Bot} label="AI replies sent" value={num(o.ai_replies)} tone="bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400" delay={0.15} />
         <Kpi icon={Inbox} label="Open conversations" value={num(o.open_conversations)} hint={o.unread_conversations ? `${o.unread_conversations} unread` : undefined} tone="bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400" delay={0.18} />
         <Kpi icon={UserX} label="Opted out" value={num(o.opted_out)} hint="replied STOP" tone="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" delay={0.21} />

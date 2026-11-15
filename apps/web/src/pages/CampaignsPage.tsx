@@ -196,7 +196,7 @@ export default function CampaignsPage() {
             <button
               onClick={handleCompare}
               disabled={selectedIds.size < 2}
-              className="flex items-center gap-2 px-4 py-2 border border-indigo-300 text-indigo-700 rounded-lg hover:bg-indigo-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-primary-300 text-primary-700 rounded-lg hover:bg-primary-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <GitCompare className="h-4 w-4" /> Compare ({selectedIds.size})
             </button>

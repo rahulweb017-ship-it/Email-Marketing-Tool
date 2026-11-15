@@ -207,7 +207,7 @@ export default function WhatsAppInboxPage() {
                 {(c.ai_intent || c.ai_hot_lead) && (
                   <div className="flex items-center gap-1.5 mt-1">
                     {c.ai_hot_lead && <span className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-semibold rounded bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"><Flame className="h-3 w-3" /> Hot lead</span>}
-                    {c.ai_intent && <span className="px-1.5 py-0.5 text-[10px] rounded bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">{INTENT_LABELS[c.ai_intent] || c.ai_intent}</span>}
+                    {c.ai_intent && <span className="px-1.5 py-0.5 text-[10px] rounded bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">{INTENT_LABELS[c.ai_intent] || c.ai_intent}</span>}
                     {c.ai_sentiment === 'negative' && <span className="px-1.5 py-0.5 text-[10px] rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Unhappy</span>}
                   </div>
                 )}
@@ -234,7 +234,7 @@ export default function WhatsAppInboxPage() {
                       ? <Link to={`/contacts/${active.contact_id}`} className="text-green-600 hover:underline">View contact</Link>
                       : <button onClick={() => { setSaveForm({ email: '', first_name: active.profile_name || '', consent: false }); setSaveOpen(true); }} className="flex items-center gap-1 text-green-600 hover:underline"><UserPlus className="h-3 w-3" /> Save as contact</button>}
                     {active.whatsapp_opt_out && <span className="text-red-500">Opted out</span>}
-                    {active.ai_summary && <span className="flex items-center gap-1 text-violet-600 dark:text-violet-300"><Sparkles className="h-3 w-3" /> {active.ai_summary}</span>}
+                    {active.ai_summary && <span className="flex items-center gap-1 text-rose-600 dark:text-rose-300"><Sparkles className="h-3 w-3" /> {active.ai_summary}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -267,14 +267,14 @@ export default function WhatsAppInboxPage() {
                   <div key={m.id} className={clsx('flex group', m.direction === 'out' ? 'justify-end' : 'justify-start')}>
                     <div className={clsx('max-w-[75%] rounded-lg px-3 py-2 text-sm shadow-sm',
                       m.direction === 'out' ? 'bg-[#d9fdd3] dark:bg-green-900/60 text-gray-900 dark:text-gray-100' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100')}>
-                      {m.sent_by === 'ai' && <div className="flex items-center gap-1 text-[10px] text-purple-600 dark:text-purple-300 mb-0.5"><Bot className="h-3 w-3" /> AI reply</div>}
+                      {m.sent_by === 'ai' && <div className="flex items-center gap-1 text-[10px] text-rose-600 dark:text-rose-300 mb-0.5"><Bot className="h-3 w-3" /> AI reply</div>}
                       {m.sent_by === 'campaign' && <div className="text-[10px] text-gray-500 mb-0.5">Campaign</div>}
                       {m.media && <div className="text-xs text-gray-500 mb-1">[{m.media.type}{m.media.filename ? `: ${m.media.filename}` : ''}]</div>}
                       <div className="whitespace-pre-wrap break-words">{m.body || (!m.media ? `[${m.type}]` : '')}</div>
                       <div className="flex items-center justify-end gap-1 mt-1 text-[10px] text-gray-500">
                         {m.direction === 'out' && m.sent_by === 'user' && m.body && (
                           <button onClick={() => teach(m)} title="Teach the AI this answer"
-                            className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 mr-1 text-purple-600 dark:text-purple-300">
+                            className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 mr-1 text-rose-600 dark:text-rose-300">
                             <GraduationCap className="h-3 w-3" /> Teach AI
                           </button>
                         )}
@@ -291,7 +291,7 @@ export default function WhatsAppInboxPage() {
               {suggestions.length > 0 && (
                 <div className="px-3 pt-2 flex flex-wrap gap-2 border-t border-gray-200 dark:border-gray-700">
                   {suggestions.map((s, i) => (
-                    <button key={i} onClick={() => setText(s)} className="text-left text-xs px-3 py-1.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 hover:bg-purple-100 max-w-full truncate">
+                    <button key={i} onClick={() => setText(s)} className="text-left text-xs px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-800 dark:text-rose-200 hover:bg-rose-100 max-w-full truncate">
                       {s}
                     </button>
                   ))}
@@ -309,7 +309,7 @@ export default function WhatsAppInboxPage() {
                 ) : (
                   <div className="flex items-end gap-2">
                     <button onClick={suggest} disabled={suggesting} title="Suggest replies with AI"
-                      className="p-2.5 rounded-lg text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 disabled:opacity-50">
+                      className="p-2.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 disabled:opacity-50">
                       <Sparkles className={clsx('h-5 w-5', suggesting && 'animate-pulse')} />
                     </button>
                     <button onClick={() => setTemplateOpen(true)} title="Use a template" className="p-2.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">

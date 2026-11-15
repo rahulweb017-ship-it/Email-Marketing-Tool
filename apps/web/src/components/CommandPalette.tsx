@@ -27,7 +27,7 @@ interface ResultItem {
 const groupConfig = {
   contact: { label: 'Contacts', icon: Users, color: 'text-blue-500' },
   campaign: { label: 'Campaigns', icon: Send, color: 'text-green-500' },
-  template: { label: 'Templates', icon: FileText, color: 'text-purple-500' },
+  template: { label: 'Templates', icon: FileText, color: 'text-rose-500' },
   list: { label: 'Lists', icon: ListChecks, color: 'text-amber-500' },
 };
 

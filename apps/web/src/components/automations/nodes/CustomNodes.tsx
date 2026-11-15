@@ -77,13 +77,13 @@ export function ConditionNode({ data, selected }: NodeProps) {
   const conditionSummary = getConditionSummary(data?.activityFilter);
   return (
     <NodeShell color="#a855f7" selected={selected}>
-      <Handle type="target" position={Position.Top} className="!bg-purple-500 !w-3 !h-3" />
+      <Handle type="target" position={Position.Top} className="!bg-rose-500 !w-3 !h-3" />
       <div className="flex items-center gap-2">
-        <div className="p-1.5 bg-purple-100 rounded">
-          <GitBranch className="h-4 w-4 text-purple-600" />
+        <div className="p-1.5 bg-rose-100 rounded">
+          <GitBranch className="h-4 w-4 text-rose-600" />
         </div>
         <div>
-          <p className="text-xs font-medium text-purple-700">Condition</p>
+          <p className="text-xs font-medium text-rose-700">Condition</p>
           <p className="text-[10px] text-gray-500 truncate max-w-[120px]">{conditionSummary || data?.label || 'Set condition'}</p>
         </div>
       </div>

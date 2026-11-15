@@ -106,7 +106,7 @@ export default function AutomationsPage() {
         <h1 className="text-2xl font-bold dark:text-gray-100">Automations</h1>
         <div className="flex gap-2">
           <button onClick={() => setShowAi(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 text-sm">
+            className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 text-sm">
             <Sparkles className="h-4 w-4" /> Build with AI
           </button>
           <button onClick={() => setShowCreate(true)}

@@ -124,7 +124,7 @@ export default function SegmentsPage() {
                 whileHover={{ y: -4, boxShadow: '0 12px 24px -8px rgba(0,0,0,0.12)' }}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
               >
-                <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-400" />
+                <div className="h-1 bg-gradient-to-r from-primary-500 to-rose-400" />
                 <div className="p-6">
                   <div className="flex items-start justify-between">
                     <h3 className="font-semibold text-lg truncate flex-1 dark:text-gray-100">{segment.name}</h3>
@@ -158,8 +158,8 @@ export default function SegmentsPage() {
                   )}
                   <div className="mt-4 flex items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                      <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{segment.cached_count}</span>
+                      <Users className="h-4 w-4 text-primary-500 dark:text-primary-400" />
+                      <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">{segment.cached_count}</span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">contacts</span>
                     </div>
                   </div>

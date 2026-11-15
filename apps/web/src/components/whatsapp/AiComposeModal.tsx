@@ -36,7 +36,7 @@ export default function AiComposeModal({ open, forTemplate, onClose, onUse }: {
         {result && <button onClick={generate} disabled={busy} className="flex items-center gap-1 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300"><RefreshCw className="h-4 w-4" /> Try again</button>}
         {result
           ? <button onClick={() => onUse(result.message)} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg">Use this message</button>
-          : <button onClick={generate} disabled={busy || goal.trim().length < 3} className="flex items-center gap-1 px-4 py-2 text-sm bg-purple-600 text-white rounded-lg disabled:opacity-50">
+          : <button onClick={generate} disabled={busy || goal.trim().length < 3} className="flex items-center gap-1 px-4 py-2 text-sm bg-rose-600 text-white rounded-lg disabled:opacity-50">
               <Sparkles className="h-4 w-4" /> {busy ? 'Writing…' : 'Write it'}
             </button>}
       </div>}>

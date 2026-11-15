@@ -24,7 +24,7 @@ const SOURCES: Record<LeadSource, { label: string; icon: typeof Inbox; color: st
   social: { label: 'Social', icon: Share2, color: 'text-pink-600 bg-pink-50 dark:bg-pink-900/30' },
   ads: { label: 'Ads', icon: Megaphone, color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30' },
   manual: { label: 'Added by team', icon: PenLine, color: 'text-gray-600 bg-gray-100 dark:bg-gray-700' },
-  api: { label: 'Webhook / API', icon: Webhook, color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' },
+  api: { label: 'Webhook / API', icon: Webhook, color: 'text-primary-600 bg-primary-50 dark:bg-primary-900/30' },
 };
 
 const STATUSES: { value: LeadStatus; label: string; color: string }[] = [
@@ -32,7 +32,7 @@ const STATUSES: { value: LeadStatus; label: string; color: string }[] = [
   { value: 'contacted', label: 'Contacted', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200' },
   { value: 'qualified', label: 'Qualified', color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200' },
   { value: 'unqualified', label: 'Unqualified', color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' },
-  { value: 'converted', label: 'Converted', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-200' },
+  { value: 'converted', label: 'Converted', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200' },
 ];
 const statusInfo = (s: LeadStatus) => STATUSES.find((x) => x.value === s) || STATUSES[0];
 
@@ -311,11 +311,11 @@ function LeadDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               </div>
             )}
 
-            <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/60 dark:bg-violet-900/10 p-4">
+            <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-900/10 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-violet-800 dark:text-violet-200"><Sparkles className="h-4 w-4" /> AI qualification</p>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-rose-800 dark:text-rose-200"><Sparkles className="h-4 w-4" /> AI qualification</p>
                 <button onClick={() => act('qualify', () => qualifyLead(id), 'Lead qualified')} disabled={!!busy}
-                  className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
+                  className="flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
                   {busy === 'qualify' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                   {q ? 'Re-qualify' : 'Qualify now'}
                 </button>
@@ -334,7 +334,7 @@ function LeadDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
                   )}
                   {q.suggested_status !== lead.status && lead.status !== 'converted' && (
                     <button onClick={() => act('status', () => updateLead(id, { status: q.suggested_status }))}
-                      className="text-xs font-medium text-violet-700 dark:text-violet-300 hover:underline">
+                      className="text-xs font-medium text-rose-700 dark:text-rose-300 hover:underline">
                       Rabbit AI suggests: mark as {statusInfo(q.suggested_status).label.toLowerCase()}
                     </button>
                   )}

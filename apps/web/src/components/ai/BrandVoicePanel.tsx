@@ -49,9 +49,9 @@ export default function BrandVoicePanel() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/40 dark:to-fuchsia-950/30 p-5">
+      <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-gradient-to-br from-rose-50 to-rose-50 dark:from-rose-950/40 dark:to-rose-950/30 p-5">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-violet-600" />
+          <Sparkles className="h-5 w-5 text-rose-600" />
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">Rabbit AI credits</h3>
         </div>
         {usage ? (
@@ -61,7 +61,7 @@ export default function BrandVoicePanel() {
                 {usage.used.toLocaleString()} of {usage.limit.toLocaleString()} credits used in {usage.period}. Credits reset on the 1st of each month.
               </p>
               <div className="mt-3 h-2 rounded-full bg-white/70 dark:bg-gray-800 overflow-hidden">
-                <div className={`h-full rounded-full ${pct > 90 ? 'bg-red-500' : 'bg-violet-600'}`} style={{ width: `${pct}%` }} />
+                <div className={`h-full rounded-full ${pct > 90 ? 'bg-red-500' : 'bg-rose-600'}`} style={{ width: `${pct}%` }} />
               </div>
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                 Costs: full email {usage.costs.email_write}, subject lines {usage.costs.subject_lines}, social posts {usage.costs.social_write}, rewrite or WhatsApp reply {usage.costs.email_rewrite}.

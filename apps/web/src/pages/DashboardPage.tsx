@@ -84,16 +84,16 @@ function StatCard({ label, value, icon: Icon, gradient, sparkData, sparkColor, i
 const activityIcons = {
   sent: { icon: Send, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/30' },
   opened: { icon: Eye, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/30' },
-  clicked: { icon: MousePointerClick, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/30' },
+  clicked: { icon: MousePointerClick, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/30' },
   bounced: { icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/30' },
 };
 
 function getTimeOfDay() {
   const h = new Date().getHours();
   if (h < 12) return { greeting: 'Good morning', icon: Sun, gradient: 'from-amber-700 via-orange-700 to-yellow-700' };
-  if (h < 17) return { greeting: 'Good afternoon', icon: CloudSun, gradient: 'from-slate-600 via-blue-700 to-indigo-700' };
-  if (h < 21) return { greeting: 'Good evening', icon: Sunset, gradient: 'from-stone-700 via-rose-800 to-purple-900' };
-  return { greeting: 'Good night', icon: Moon, gradient: 'from-slate-800 via-indigo-900 to-zinc-900' };
+  if (h < 17) return { greeting: 'Good afternoon', icon: CloudSun, gradient: 'from-slate-600 via-blue-700 to-primary-700' };
+  if (h < 21) return { greeting: 'Good evening', icon: Sunset, gradient: 'from-stone-700 via-rose-800 to-rose-900' };
+  return { greeting: 'Good night', icon: Moon, gradient: 'from-slate-800 via-primary-900 to-zinc-900' };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,7 +135,7 @@ export default function DashboardPage() {
     { label: 'Total Contacts', value: stats.contacts, icon: Users, gradient: 'from-blue-500 to-blue-600', sparkData: trends.contacts, sparkColor: '#3b82f6' },
     { label: 'Emails Sent', value: stats.total_emails_sent, icon: Send, gradient: 'from-green-500 to-emerald-600', sparkData: trends.emails_sent, sparkColor: '#10b981' },
     { label: 'Total Opens', value: stats.total_opened, icon: Eye, gradient: 'from-amber-500 to-orange-500', sparkData: trends.opens, sparkColor: '#f59e0b' },
-    { label: 'Total Clicks', value: stats.total_clicked, icon: MousePointerClick, gradient: 'from-purple-500 to-violet-600', sparkData: trends.clicks, sparkColor: '#8b5cf6' },
+    { label: 'Total Clicks', value: stats.total_clicked, icon: MousePointerClick, gradient: 'from-rose-500 to-rose-600', sparkData: trends.clicks, sparkColor: '#8b5cf6' },
   ];
 
   const quickActions = [

@@ -47,7 +47,7 @@ export default function AiImageGeneratorModal({ isOpen, onClose, onCreated }: {
   };
 
   const chip = (active: boolean) => `px-3 py-1.5 rounded-lg border text-sm ${active
-    ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-200'
+    ? 'border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200'
     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`;
 
   return (
@@ -57,7 +57,7 @@ export default function AiImageGeneratorModal({ isOpen, onClose, onCreated }: {
         <div className="flex gap-3">
           <button onClick={onClose} disabled={busy} className="px-4 py-2 border dark:border-gray-600 rounded-lg text-sm dark:text-gray-300 disabled:opacity-50">Cancel</button>
           <button onClick={run} disabled={busy || prompt.trim().length < 5}
-            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm disabled:opacity-50">
+            className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm disabled:opacity-50">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             {busy ? 'Creating (up to a minute)...' : 'Create image'}
           </button>
@@ -73,7 +73,7 @@ export default function AiImageGeneratorModal({ isOpen, onClose, onCreated }: {
           <div className="mt-2 flex flex-wrap gap-2">
             {EXAMPLES.map((e) => (
               <button key={e} type="button" onClick={() => setPrompt(e)}
-                className="rounded-full border border-violet-200 dark:border-violet-800 px-3 py-1 text-xs text-violet-700 dark:text-violet-300 text-left">
+                className="rounded-full border border-rose-200 dark:border-rose-800 px-3 py-1 text-xs text-rose-700 dark:text-rose-300 text-left">
                 {e.split(',')[0]}
               </button>
             ))}

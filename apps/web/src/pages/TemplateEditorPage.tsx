@@ -371,7 +371,7 @@ export default function TemplateEditorPage() {
           <button
             onClick={openAi}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-medium text-white hover:brightness-110 disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-rose-600 to-rose-600 text-sm font-medium text-white hover:brightness-110 disabled:opacity-50"
             title="Write the whole email, or rewrite the selected text, with Rabbit AI"
           >
             <Sparkles className="h-4 w-4" /> Write with AI

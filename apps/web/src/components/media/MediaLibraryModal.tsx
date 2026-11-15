@@ -168,7 +168,7 @@ export default function MediaLibraryModal({ isOpen, onClose, onSelect, kinds, ti
 
         {(!kindsKey || kindsKey.split(',').includes('image')) && (
           <button type="button" onClick={() => setGenerateOpen(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-medium text-violet-700 hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-900/20 dark:text-violet-200">
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-200">
             <Sparkles className="h-4 w-4" /> Create an image with AI
           </button>
         )}

@@ -170,7 +170,7 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
         <Eye className="h-4 w-4" />
         {previewing ? 'Computing...' : 'Preview Count'}
         {previewCount !== null && (
-          <span className="ml-1 px-2 py-0.5 text-xs font-bold bg-indigo-100 text-indigo-700 rounded-full">
+          <span className="ml-1 px-2 py-0.5 text-xs font-bold bg-primary-100 text-primary-700 rounded-full">
             {previewCount}
           </span>
         )}
@@ -203,8 +203,8 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
     >
       <div className="space-y-5">
         {/* Rabbit AI */}
-        <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/60 dark:bg-violet-950/30 p-4 space-y-2">
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-violet-800 dark:text-violet-200">
+        <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-950/30 p-4 space-y-2">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-rose-800 dark:text-rose-200">
             <Sparkles className="h-4 w-4" /> Describe your audience
           </p>
           <div className="flex gap-2">
@@ -218,7 +218,7 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
               maxLength={1000}
             />
             <button type="button" onClick={runAi} disabled={aiBusy || aiPrompt.trim().length < 5}
-              className="shrink-0 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+              className="shrink-0 rounded-lg bg-rose-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
               {aiBusy ? 'Building...' : 'Build rules'}
             </button>
           </div>
@@ -264,7 +264,7 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
               onClick={() => { setMatch('all'); setPreviewCount(null); }}
               className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
                 match === 'all'
-                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -274,7 +274,7 @@ export default function SegmentBuilder({ isOpen, onClose, onSaved, segment }: Se
               onClick={() => { setMatch('any'); setPreviewCount(null); }}
               className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
                 match === 'any'
-                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
