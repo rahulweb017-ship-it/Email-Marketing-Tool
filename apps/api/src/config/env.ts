@@ -46,6 +46,8 @@ export const env = {
   FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET || '',
   LINKEDIN_CLIENT_ID: process.env.LINKEDIN_CLIENT_ID || '',
   LINKEDIN_CLIENT_SECRET: process.env.LINKEDIN_CLIENT_SECRET || '',
+  // Organization scopes (w_organization_social etc.) require LinkedIn's Community Management API product
+  LINKEDIN_SCOPES: process.env.LINKEDIN_SCOPES || 'openid profile w_member_social',
   SOCIAL_OAUTH_CALLBACK_URL: process.env.SOCIAL_OAUTH_CALLBACK_URL || '',
 
   // WhatsApp (Meta Cloud API webhooks) — app secret falls back to the Facebook app secret

@@ -27,7 +27,7 @@ export class LinkedInProvider implements SocialProvider {
       client_id: this.clientId,
       redirect_uri: redirectUri,
       state,
-      scope: 'openid profile w_member_social r_organization_social w_organization_social rw_organization_admin',
+      scope: env.LINKEDIN_SCOPES,
     });
     return `${LI_AUTH}?${params.toString()}`;
   }

@@ -13,7 +13,16 @@ export const socialRouter = Router();
 // ─── OAuth callback (no JWT auth — uses state param) ───
 socialRouter.get('/accounts/callback', async (req, res, next) => {
   try {
-    const { state, code } = req.query as { state: string; code: string };
+    // LinkedIn/X send error + error_description; Facebook sends error_code + error_message
+    const { state, code, error, error_description, error_code, error_message } = req.query as {
+      state: string; code: string; error?: string; error_description?: string;
+      error_code?: string; error_message?: string;
+    };
+    if (error || error_code) {
+      const message = error_description || error_message || error || `Error ${error_code}`;
+      const params = new URLSearchParams({ error: 'oauth_failed', message });
+      return res.redirect(`${env.FRONTEND_URL}/social/accounts?${params.toString()}`);
+    }
     if (!state || !code) {
       return res.redirect(`${env.FRONTEND_URL}/social/accounts?error=missing_params`);
     }

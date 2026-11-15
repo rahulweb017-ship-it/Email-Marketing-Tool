@@ -28,7 +28,7 @@ export default defineConfig({
   preview: {
     port: 5173,
     host: '0.0.0.0',
-    allowedHosts: ['marketing.bitefordeals.com'],
+    allowedHosts: ['rabbitgrowth.si', 'www.rabbitgrowth.si', 'marketing.bitefordeals.com'],
     proxy: apiProxy,
   },
 });
